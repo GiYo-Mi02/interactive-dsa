@@ -313,6 +313,9 @@ export default function VisualizerPage() {
           <p className="text-slate-500 text-sm">
             Interactive DSA Visualizer — An educational tool for understanding graph algorithms
           </p>
+          <p className="text-slate-600 text-xs mt-1">
+            Made by Gio Joshua Gonzales from 2ACSAD of UMak
+          </p>
         </div>
       </footer>
     </div>

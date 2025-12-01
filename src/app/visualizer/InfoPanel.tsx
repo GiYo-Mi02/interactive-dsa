@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { InfoPanelProps } from './types';
 import { formatDistance } from '@/lib/utils';
 import {
@@ -13,7 +13,71 @@ import {
   ShieldOff,
   Route,
   ArrowRight,
+  Code2,
 } from 'lucide-react';
+
+// Pseudocode line component with animation
+interface PseudocodeLine {
+  code: string;
+  indent: number;
+}
+
+const DIJKSTRA_PSEUDOCODE: PseudocodeLine[] = [
+  { code: 'function dijkstra(graph, start, end):', indent: 0 },
+  { code: 'dist[v] = ∞ for all vertices v', indent: 1 },
+  { code: 'dist[start] = 0', indent: 1 },
+  { code: 'pq = [(0, start)]  // priority queue', indent: 1 },
+  { code: 'while pq is not empty:', indent: 1 },
+  { code: 'current = pq.extractMin()', indent: 2 },
+  { code: 'if current is visited: continue', indent: 2 },
+  { code: 'mark current as visited', indent: 2 },
+  { code: 'if current == end: return dist[end]', indent: 2 },
+  { code: 'for each neighbor of current:', indent: 2 },
+  { code: 'newDist = dist[current] + weight', indent: 3 },
+  { code: 'if newDist < dist[neighbor]:', indent: 3 },
+  { code: 'dist[neighbor] = newDist', indent: 4 },
+  { code: 'pq.insert((newDist, neighbor))', indent: 4 },
+  { code: 'return "no path found"', indent: 1 },
+];
+
+// Map step explanations to pseudocode line indices
+function getActiveLineFromExplanation(explanation: string | undefined): number {
+  if (!explanation) return -1;
+  
+  const exp = explanation.toLowerCase();
+  
+  // "Starting at node X. Initial distance is 0." -> Lines 1-4 (initialization)
+  if (exp.includes('starting at') && exp.includes('initial distance')) {
+    return 2; // dist[start] = 0
+  }
+  
+  // "Visiting start node X." -> mark as visited
+  if (exp.includes('visiting start node')) {
+    return 7; // mark current as visited
+  }
+  
+  // "Visiting node X with distance Y from source." -> extractMin + mark visited
+  if (exp.includes('visiting node') && exp.includes('with distance')) {
+    return 7; // mark current as visited
+  }
+  
+  // "Reached destination node X!" -> found the end
+  if (exp.includes('reached destination')) {
+    return 8; // if current == end: return
+  }
+  
+  // "Found path to node X via node Y. Distance: Z" -> new path found
+  if (exp.includes('found path to node') && !exp.includes('shorter')) {
+    return 12; // dist[neighbor] = newDist (first time finding path)
+  }
+  
+  // "Found shorter path to node X via node Y. Old: A, New: B" -> relaxation
+  if (exp.includes('found shorter path')) {
+    return 12; // dist[neighbor] = newDist
+  }
+  
+  return -1;
+}
 
 export default function InfoPanel({
   currentStep,
@@ -24,6 +88,53 @@ export default function InfoPanel({
   blockedNodes,
   shortestPath,
 }: InfoPanelProps) {
+  // Determine which line is currently active based on explanation
+  const activeLineIndex = useMemo(() => {
+    return getActiveLineFromExplanation(currentStep?.explanation);
+  }, [currentStep?.explanation]);
+
+  // Track which lines have been "executed" based on step progress
+  const executedLines = useMemo(() => {
+    const executed = new Set<number>();
+    
+    if (!currentStep) return executed;
+    
+    // Always show initialization as executed after first step
+    if (stepNumber >= 1) {
+      executed.add(0); // function
+      executed.add(1); // dist = infinity
+      executed.add(2); // dist[start] = 0
+      executed.add(3); // pq init
+    }
+    
+    // While loop and extraction
+    if (stepNumber >= 2) {
+      executed.add(4); // while
+      executed.add(5); // extractMin
+    }
+    
+    // Visited check and marking
+    if (currentStep.visited.length > 0) {
+      executed.add(7); // mark as visited
+    }
+    
+    // If we've found paths (neighbors explored)
+    if (Object.values(currentStep.distances).some(d => d !== Infinity && d !== 0)) {
+      executed.add(9);  // for each neighbor
+      executed.add(10); // newDist calculation
+      executed.add(11); // if newDist < dist
+      executed.add(12); // update dist
+      executed.add(13); // insert pq
+    }
+    
+    // If we reached destination
+    if (shortestPath.length > 0) {
+      executed.add(8); // return dist[end]
+    }
+    
+    return executed;
+  }, [currentStep, stepNumber, shortestPath]);
+
   return (
     <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 space-y-3 sm:space-y-4">
       <h2 className="text-lg sm:text-xl font-bold text-white border-b border-white/10 pb-3 flex items-center gap-2">
@@ -189,6 +300,83 @@ export default function InfoPanel({
           )}
         </div>
       )}
+
+      {/* Animated Dijkstra Pseudocode */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4 overflow-hidden">
+        <h3 className="text-xs sm:text-sm font-semibold text-slate-300 mb-2 sm:mb-3 flex items-center gap-2">
+          <Code2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          Pseudocode
+        </h3>
+        <div className="font-mono text-[10px] sm:text-xs space-y-0.5 overflow-x-auto">
+          {DIJKSTRA_PSEUDOCODE.map((line, idx) => {
+            const isActive = idx === activeLineIndex;
+            const isExecuted = executedLines.has(idx) && !isActive;
+            
+            return (
+              <div
+                key={idx}
+                className={`
+                  relative py-0.5 px-2 rounded transition-all duration-300 ease-out
+                  ${isActive 
+                    ? 'bg-gradient-to-r from-cyan-500/30 to-purple-500/20 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.4)]' 
+                    : isExecuted
+                    ? 'text-emerald-400/70'
+                    : 'text-slate-500'
+                  }
+                `}
+                style={{ 
+                  paddingLeft: `${line.indent * 12 + 8}px`,
+                  transform: isActive ? 'translateX(4px) scale(1.01)' : 'translateX(0) scale(1)',
+                }}
+              >
+                {/* Active line indicator */}
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-5 bg-gradient-to-b from-cyan-400 to-purple-400 rounded-full animate-pulse" />
+                )}
+                
+                {/* Executed line checkmark */}
+                {isExecuted && (
+                  <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-emerald-500 text-[8px]">✓</span>
+                )}
+                
+                {/* Line number */}
+                <span className={`inline-block w-5 mr-2 text-right ${
+                  isActive ? 'text-cyan-400 font-bold' : isExecuted ? 'text-emerald-500/60' : 'text-slate-600'
+                }`}>
+                  {idx + 1}
+                </span>
+                
+                {/* Code */}
+                <span className={isActive ? 'font-semibold' : ''}>
+                  {line.code}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Execution indicator */}
+        {activeLineIndex >= 0 && (
+          <div className="mt-3 pt-2 border-t border-slate-700/50">
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+              <span className="text-slate-400">
+                Executing: <span className="text-cyan-300 font-mono font-medium">Line {activeLineIndex + 1}</span>
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {/* No active line - show waiting state */}
+        {activeLineIndex < 0 && stepNumber === 0 && (
+          <div className="mt-3 pt-2 border-t border-slate-700/50">
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500">
+              <span className="w-2 h-2 rounded-full bg-slate-600" />
+              <span>Waiting to start...</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

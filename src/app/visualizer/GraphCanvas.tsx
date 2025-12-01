@@ -44,37 +44,56 @@ export default function GraphCanvas({
 }: GraphCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const p5Instance = useRef<p5 | null>(null);
+  const isInitialized = useRef(false);
   
   // Zoom and pan state
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
-  const zoomRef = useRef(zoom);
-  const panRef = useRef(panOffset);
-  const isPanningRef = useRef(false);
+  
+  // Store onNodeClick in a ref so it's always current
+  const onNodeClickRef = useRef(onNodeClick);
+  useEffect(() => {
+    onNodeClickRef.current = onNodeClick;
+  }, [onNodeClick]);
+  
+  // Use refs for state that the p5 draw loop needs access to
+  // This prevents recreating the sketch on every state change
+  const stateRef = useRef({
+    graph,
+    startNode,
+    endNode,
+    blockedNodes,
+    currentStep,
+    shortestPath,
+    selectionMode,
+    zoom: 1,
+    panOffset: { x: 0, y: 0 },
+    isPanning: false,
+    needsRedraw: true,
+  });
+  
   const lastMousePos = useRef({ x: 0, y: 0 });
-  const needsRedraw = useRef(true);
-  
-  // Create node lookup map for O(1) access instead of O(n) find()
-  const nodeMap = useMemo(() => {
-    if (!graph) return new Map<number, NodePosition>();
-    return new Map(graph.nodes.map(n => [n.id, n]));
-  }, [graph]);
-  
-  // Create path set for O(1) lookup
-  const pathSet = useMemo(() => new Set(shortestPath), [shortestPath]);
-  
-  // Keep refs in sync and trigger redraw
+
+  // Update refs when props change (without triggering p5 recreation)
   useEffect(() => {
-    zoomRef.current = zoom;
-    panRef.current = panOffset;
-    needsRedraw.current = true;
-  }, [zoom, panOffset]);
-  
-  // Trigger redraw on state changes
-  useEffect(() => {
-    needsRedraw.current = true;
+    stateRef.current.graph = graph;
+    stateRef.current.startNode = startNode;
+    stateRef.current.endNode = endNode;
+    stateRef.current.blockedNodes = blockedNodes;
+    stateRef.current.currentStep = currentStep;
+    stateRef.current.shortestPath = shortestPath;
+    stateRef.current.selectionMode = selectionMode;
+    stateRef.current.needsRedraw = true;
   }, [graph, startNode, endNode, blockedNodes, currentStep, shortestPath, selectionMode]);
+
+  // Update zoom/pan refs
+  useEffect(() => {
+    stateRef.current.zoom = zoom;
+    stateRef.current.panOffset = panOffset;
+    stateRef.current.isPanning = isPanning;
+    stateRef.current.needsRedraw = true;
+  }, [zoom, panOffset, isPanning]);
   
   // Zoom controls
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 3));
@@ -85,53 +104,10 @@ export default function GraphCanvas({
   };
   const togglePanMode = () => setIsPanning(prev => !prev);
 
-  const getNodeColor = useCallback(
-    (nodeId: number): string => {
-      if (blockedNodes.has(nodeId)) return COLORS.node.blocked;
-      if (pathSet.has(nodeId)) return COLORS.node.path;
-      if (currentStep?.currentNode === nodeId) return COLORS.node.current;
-      if (currentStep?.visited.includes(nodeId)) return COLORS.node.visited;
-      if (nodeId === startNode) return COLORS.node.start;
-      if (nodeId === endNode) return COLORS.node.end;
-      return COLORS.node.default;
-    },
-    [blockedNodes, pathSet, currentStep, startNode, endNode]
-  );
-
-  // Pre-compute path edges for O(1) lookup
-  const pathEdges = useMemo(() => {
-    const edges = new Set<string>();
-    for (let i = 0; i < shortestPath.length - 1; i++) {
-      const a = Math.min(shortestPath[i], shortestPath[i + 1]);
-      const b = Math.max(shortestPath[i], shortestPath[i + 1]);
-      edges.add(`${a}-${b}`);
-    }
-    return edges;
-  }, [shortestPath]);
-
-  const isEdgeInPath = useCallback(
-    (from: number, to: number): boolean => {
-      const a = Math.min(from, to);
-      const b = Math.max(from, to);
-      return pathEdges.has(`${a}-${b}`);
-    },
-    [pathEdges]
-  );
-
-  const isCurrentEdge = useCallback(
-    (from: number, to: number): boolean => {
-      if (!currentStep?.currentEdge) return false;
-      const edge = currentStep.currentEdge;
-      return (
-        (edge.from === from && edge.to === to) ||
-        (edge.from === to && edge.to === from)
-      );
-    },
-    [currentStep]
-  );
-
+  // Initialize p5 only once
   useEffect(() => {
-    if (!containerRef.current || !graph) return;
+    if (!containerRef.current || isInitialized.current) return;
+    isInitialized.current = true;
 
     const loadP5 = async () => {
       const p5Module = await import('p5');
@@ -142,8 +118,40 @@ export default function GraphCanvas({
       }
 
       const sketch = (p: p5) => {
-        // Reduce frame rate for better performance
         const TARGET_FPS = isMobile ? 24 : 30;
+        
+        // Helper functions that use stateRef
+        const getNodeColor = (nodeId: number): string => {
+          const { blockedNodes, shortestPath, currentStep, startNode, endNode } = stateRef.current;
+          const pathSet = new Set(shortestPath);
+          
+          if (blockedNodes.has(nodeId)) return COLORS.node.blocked;
+          if (pathSet.has(nodeId)) return COLORS.node.path;
+          if (currentStep?.currentNode === nodeId) return COLORS.node.current;
+          if (currentStep?.visited.includes(nodeId)) return COLORS.node.visited;
+          if (nodeId === startNode) return COLORS.node.start;
+          if (nodeId === endNode) return COLORS.node.end;
+          return COLORS.node.default;
+        };
+
+        const isEdgeInPath = (from: number, to: number): boolean => {
+          const { shortestPath } = stateRef.current;
+          for (let i = 0; i < shortestPath.length - 1; i++) {
+            const a = shortestPath[i];
+            const b = shortestPath[i + 1];
+            if ((a === from && b === to) || (a === to && b === from)) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const isCurrentEdge = (from: number, to: number): boolean => {
+          const { currentStep } = stateRef.current;
+          if (!currentStep?.currentEdge) return false;
+          const edge = currentStep.currentEdge;
+          return (edge.from === from && edge.to === to) || (edge.from === to && edge.to === from);
+        };
 
         p.setup = () => {
           const canvas = p.createCanvas(
@@ -154,7 +162,6 @@ export default function GraphCanvas({
           p.textAlign(p.CENTER, p.CENTER);
           p.textFont('system-ui');
           p.frameRate(TARGET_FPS);
-          // Disable smooth for better mobile performance
           if (isMobile) {
             p.noSmooth();
           } else {
@@ -163,26 +170,31 @@ export default function GraphCanvas({
         };
 
         p.draw = () => {
-          // Skip frame if nothing changed (massive performance boost)
-          if (!needsRedraw.current && p.frameCount > 1) {
+          const state = stateRef.current;
+          
+          // Skip frame if nothing changed
+          if (!state.needsRedraw && p.frameCount > 1) {
             return;
           }
-          needsRedraw.current = false;
+          state.needsRedraw = false;
+          
+          const { graph, blockedNodes, selectionMode, zoom, panOffset } = state;
+          const pathSet = new Set(state.shortestPath);
           
           // Dark space background
           p.background(COLORS.background);
           
           // Apply zoom and pan transformations
           p.push();
-          p.translate(p.width / 2 + panRef.current.x, p.height / 2 + panRef.current.y);
-          p.scale(zoomRef.current);
+          p.translate(p.width / 2 + panOffset.x, p.height / 2 + panOffset.y);
+          p.scale(zoom);
           p.translate(-p.width / 2, -p.height / 2);
           
           // Draw simplified grid (skip on mobile for performance)
           if (!isMobile) {
             p.stroke(255, 255, 255, 5);
             p.strokeWeight(1);
-            const gridSize = 80; // Larger grid = fewer lines
+            const gridSize = 80;
             for (let x = 0; x < p.width; x += gridSize) {
               p.line(x, 0, x, p.height);
             }
@@ -195,6 +207,9 @@ export default function GraphCanvas({
             p.pop();
             return;
           }
+
+          // Create node lookup map
+          const nodeMap = new Map(graph.nodes.map(n => [n.id, n]));
 
           // Draw edges - batch by type for fewer state changes
           // First pass: regular edges
@@ -234,7 +249,6 @@ export default function GraphCanvas({
             if (blockedNodes.has(fromNode.id) || blockedNodes.has(toNode.id)) return;
             
             if (isEdgeInPath(edge.from, edge.to)) {
-              // Simplified glow - just one extra line
               if (!isMobile) {
                 p.stroke(34, 211, 238, 60);
                 p.strokeWeight(6);
@@ -272,26 +286,26 @@ export default function GraphCanvas({
             p.text(edge.weight.toString(), midX, midY - 8);
           });
 
-          // Draw nodes - simplified rendering
+          // Draw nodes
           graph.nodes.forEach((node) => {
             const color = getNodeColor(node.id);
             const isSpecial = pathSet.has(node.id) || 
-                            currentStep?.currentNode === node.id || 
-                            node.id === startNode || 
-                            node.id === endNode;
+                            state.currentStep?.currentNode === node.id || 
+                            node.id === state.startNode || 
+                            node.id === state.endNode;
 
-            // Static glow for special nodes (no animation = no lag)
+            // Static glow for special nodes
             if (isSpecial && !isMobile) {
               const glowSize = NODE_RADIUS * 2.5;
               p.noStroke();
               
-              if (currentStep?.currentNode === node.id) {
+              if (state.currentStep?.currentNode === node.id) {
                 p.fill(251, 191, 36, 35);
               } else if (pathSet.has(node.id)) {
                 p.fill(34, 211, 238, 30);
-              } else if (node.id === startNode) {
+              } else if (node.id === state.startNode) {
                 p.fill(16, 185, 129, 35);
-              } else if (node.id === endNode) {
+              } else if (node.id === state.endNode) {
                 p.fill(244, 63, 94, 35);
               }
               
@@ -309,7 +323,7 @@ export default function GraphCanvas({
             p.noStroke();
             p.ellipse(node.x, node.y, NODE_RADIUS * 2);
             
-            // Inner highlight (skip on mobile)
+            // Inner highlight
             if (!isMobile) {
               p.fill(255, 255, 255, 25);
               p.ellipse(node.x - 4, node.y - 4, NODE_RADIUS);
@@ -322,8 +336,8 @@ export default function GraphCanvas({
             p.text(node.id.toString(), node.x, node.y);
 
             // Distance label
-            if (currentStep && currentStep.distances[node.id] !== undefined) {
-              const dist = currentStep.distances[node.id];
+            if (state.currentStep && state.currentStep.distances[node.id] !== undefined) {
+              const dist = state.currentStep.distances[node.id];
               const distText = dist === Infinity ? '∞' : dist.toString();
               
               p.fill(13, 17, 23, 220);
@@ -382,29 +396,39 @@ export default function GraphCanvas({
           p.rect(p.width - 70, 12, 58, 24, 8);
           p.fill(148, 163, 184);
           p.textSize(11);
-          p.text(`${Math.round(zoomRef.current * 100)}%`, p.width - 41, 24);
+          p.text(`${Math.round(zoom * 100)}%`, p.width - 41, 24);
         };
 
         p.mousePressed = () => {
+          const { graph } = stateRef.current;
           if (!graph) return;
           
+          // Check if mouse is within canvas bounds
+          if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) {
+            return;
+          }
+          
           lastMousePos.current = { x: p.mouseX, y: p.mouseY };
-          needsRedraw.current = true;
+          stateRef.current.needsRedraw = true;
 
-          const transformedX = (p.mouseX - p.width / 2 - panRef.current.x) / zoomRef.current + p.width / 2;
-          const transformedY = (p.mouseY - p.height / 2 - panRef.current.y) / zoomRef.current + p.height / 2;
+          const { zoom, panOffset } = stateRef.current;
+          const transformedX = (p.mouseX - p.width / 2 - panOffset.x) / zoom + p.width / 2;
+          const transformedY = (p.mouseY - p.height / 2 - panOffset.y) / zoom + p.height / 2;
 
           for (const node of graph.nodes) {
             const d = p.dist(transformedX, transformedY, node.x, node.y);
             if (d < NODE_RADIUS + 5) {
-              onNodeClick(node.id);
+              // Use the ref to get the current callback
+              if (onNodeClickRef.current) {
+                onNodeClickRef.current(node.id);
+              }
               return;
             }
           }
         };
         
         p.mouseDragged = () => {
-          if (isPanningRef.current) {
+          if (stateRef.current.isPanning) {
             const dx = p.mouseX - lastMousePos.current.x;
             const dy = p.mouseY - lastMousePos.current.y;
             setPanOffset(prev => ({
@@ -412,15 +436,15 @@ export default function GraphCanvas({
               y: prev.y + dy
             }));
             lastMousePos.current = { x: p.mouseX, y: p.mouseY };
-            needsRedraw.current = true;
+            stateRef.current.needsRedraw = true;
           }
         };
         
         p.mouseWheel = (event: WheelEvent) => {
-          if (isPanningRef.current) {
+          if (stateRef.current.isPanning) {
             const delta = event.deltaY > 0 ? -0.1 : 0.1;
             setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
-            needsRedraw.current = true;
+            stateRef.current.needsRedraw = true;
             return false;
           }
           return true;
@@ -432,7 +456,7 @@ export default function GraphCanvas({
               containerRef.current.clientWidth,
               containerRef.current.clientHeight
             );
-            needsRedraw.current = true;
+            stateRef.current.needsRedraw = true;
           }
         };
       };
@@ -445,27 +469,21 @@ export default function GraphCanvas({
     return () => {
       if (p5Instance.current) {
         p5Instance.current.remove();
+        p5Instance.current = null;
+        isInitialized.current = false;
       }
     };
-  }, [
-    graph,
-    nodeMap,
-    startNode,
-    endNode,
-    blockedNodes,
-    currentStep,
-    pathSet,
-    selectionMode,
-    onNodeClick,
-    getNodeColor,
-    isEdgeInPath,
-    isCurrentEdge,
-  ]);
+  }, []); // Empty deps - only run once!
 
-  // Keep isPanningRef in sync
+  // Separate effect to handle container resize
   useEffect(() => {
-    isPanningRef.current = isPanning;
-  }, [isPanning]);
+    const handleResize = () => {
+      stateRef.current.needsRedraw = true;
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="relative w-full h-full">
