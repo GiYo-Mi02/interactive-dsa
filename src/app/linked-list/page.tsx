@@ -76,10 +76,10 @@ export default function LinkedListPage() {
           setNodes2(valuesToNodes(sorted.slice(mid)));
         } else {
           setNodes(valuesToNodes(values));
+          setNodes2([]);
         }
         setHasCycle(false);
         setCycleStart(undefined);
-        setNodes2(algorithm !== 'merge-sorted' ? [] : nodes2);
         setSteps([]);
         setCurrentStepIndex(0);
         setIsPlaying(false);
@@ -100,6 +100,7 @@ export default function LinkedListPage() {
         setHasCycle(false);
         setCycleStart(undefined);
       }
+      setNodes2([]);
     } else if (algorithm === 'merge-sorted') {
       setNodes(generateSortedLinkedList(Math.floor(listSize / 2) + 1, 0));
       setNodes2(generateSortedLinkedList(Math.floor(listSize / 2), 0));
@@ -109,16 +110,18 @@ export default function LinkedListPage() {
       setNodes(generateLinkedList(listSize));
       setHasCycle(false);
       setCycleStart(undefined);
+      setNodes2([]);
     }
-    setNodes2([]);
     setSteps([]);
     setCurrentStepIndex(0);
     setIsPlaying(false);
-  }, [algorithm, listSize, inputMode, customInput, parseCustomInput, valuesToNodes, nodes2]);
+  }, [algorithm, listSize, inputMode, customInput, parseCustomInput, valuesToNodes]);
 
+  // Only run on algorithm change, not on every handleGenerateList change
   useEffect(() => {
     handleGenerateList();
-  }, [algorithm, handleGenerateList]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [algorithm]);
 
   // Run algorithm
   const handleRunAlgorithm = useCallback(() => {
@@ -142,9 +145,11 @@ export default function LinkedListPage() {
         break;
     }
 
-    setSteps(algorithmSteps);
-    setCurrentStepIndex(0);
-    setIsPlaying(true);
+    if (algorithmSteps.length > 0) {
+      setSteps(algorithmSteps);
+      setCurrentStepIndex(0);
+      setIsPlaying(true);
+    }
   }, [nodes, nodes2, algorithm, hasCycle, cycleStart, listSize]);
 
   // Animation playback
