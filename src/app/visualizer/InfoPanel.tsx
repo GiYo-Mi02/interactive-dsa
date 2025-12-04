@@ -16,6 +16,10 @@ import {
   Code2,
 } from 'lucide-react';
 
+interface ExtendedInfoPanelProps extends InfoPanelProps {
+  isDark?: boolean;
+}
+
 // Pseudocode line component with animation
 interface PseudocodeLine {
   code: string;
@@ -87,7 +91,8 @@ export default function InfoPanel({
   endNode,
   blockedNodes,
   shortestPath,
-}: InfoPanelProps) {
+  isDark = true,
+}: ExtendedInfoPanelProps) {
   // Determine which line is currently active based on explanation
   const activeLineIndex = useMemo(() => {
     return getActiveLineFromExplanation(currentStep?.explanation);
@@ -136,21 +141,33 @@ export default function InfoPanel({
   }, [currentStep, stepNumber, shortestPath]);
 
   return (
-    <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 space-y-3 sm:space-y-4">
-      <h2 className="text-lg sm:text-xl font-bold text-white border-b border-white/10 pb-3 flex items-center gap-2">
-        <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+    <div className={`backdrop-blur-xl rounded-2xl border p-4 sm:p-6 space-y-4 sm:space-y-5 ${
+      isDark 
+        ? 'bg-slate-900/80 border-white/10' 
+        : 'bg-white/90 border-slate-200 shadow-lg'
+    }`}>
+      <h2 className={`text-lg sm:text-xl font-bold border-b pb-3 flex items-center gap-2 ${
+        isDark 
+          ? 'text-white border-white/10' 
+          : 'text-slate-800 border-slate-200'
+      }`}>
+        <Activity className={`w-4 h-4 sm:w-5 sm:h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
         Algorithm Info
       </h2>
 
       {/* Step Progress */}
-      <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl p-3 sm:p-4 border border-white/5">
+      <div className={`rounded-xl p-3 sm:p-4 border ${
+        isDark 
+          ? 'bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-white/5' 
+          : 'bg-gradient-to-r from-cyan-50 to-purple-50 border-slate-200'
+      }`}>
         <div className="flex justify-between items-center mb-2 sm:mb-3">
-          <span className="text-xs sm:text-sm font-medium text-slate-400">Progress</span>
-          <span className="text-xs sm:text-sm font-bold text-cyan-400">
+          <span className={`text-xs sm:text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Progress</span>
+          <span className={`text-xs sm:text-sm font-bold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
             Step {stepNumber} / {totalSteps || 0}
           </span>
         </div>
-        <div className="w-full bg-slate-700/50 rounded-full h-1.5 sm:h-2 overflow-hidden">
+        <div className={`w-full rounded-full h-1.5 sm:h-2 overflow-hidden ${isDark ? 'bg-slate-700/50' : 'bg-slate-200'}`}>
           <div
             className="bg-gradient-to-r from-cyan-500 to-purple-500 h-full rounded-full transition-all duration-300"
             style={{
@@ -162,59 +179,53 @@ export default function InfoPanel({
 
       {/* Current Explanation */}
       {currentStep && (
-        <div className="bg-amber-500/10 border border-amber-500/20 p-3 sm:p-4 rounded-xl">
-          <h3 className="font-semibold text-amber-400 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm">
+        <div className={`border p-3 sm:p-4 rounded-xl ${
+          isDark 
+            ? 'bg-amber-500/10 border-amber-500/20' 
+            : 'bg-amber-50 border-amber-200'
+        }`}>
+          <h3 className={`font-semibold mb-1.5 sm:mb-2 flex items-center gap-2 text-sm ${
+            isDark ? 'text-amber-400' : 'text-amber-600'
+          }`}>
             <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Current Step
           </h3>
-          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{currentStep.explanation}</p>
+          <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{currentStep.explanation}</p>
         </div>
       )}
 
-      {/* Node Info */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2.5 sm:p-3 text-center">
-          <div className="flex items-center justify-center gap-1 text-emerald-400 mb-0.5 sm:mb-1">
-            <MapPin className="w-3 h-3" />
-            <span className="text-[10px] sm:text-xs uppercase font-semibold">Start</span>
-          </div>
-          <p className="text-xl sm:text-2xl font-bold text-emerald-400">
-            {startNode !== null ? startNode : '—'}
-          </p>
-        </div>
-        <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-2.5 sm:p-3 text-center">
-          <div className="flex items-center justify-center gap-1 text-rose-400 mb-0.5 sm:mb-1">
-            <Target className="w-3 h-3" />
-            <span className="text-[10px] sm:text-xs uppercase font-semibold">End</span>
-          </div>
-          <p className="text-xl sm:text-2xl font-bold text-rose-400">
-            {endNode !== null ? endNode : '—'}
-          </p>
-        </div>
-      </div>
-
       {/* Priority Queue */}
       {currentStep && (
-        <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 sm:p-4">
-          <h3 className="text-xs sm:text-sm font-semibold text-purple-400 mb-2 sm:mb-3 flex items-center gap-2">
+        <div className={`rounded-xl p-3 sm:p-4 border ${
+          isDark 
+            ? 'bg-purple-500/10 border-purple-500/20' 
+            : 'bg-purple-50 border-purple-200'
+        }`}>
+          <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2 ${
+            isDark ? 'text-purple-400' : 'text-purple-600'
+          }`}>
             <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Priority Queue
           </h3>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {currentStep.pq.length === 0 ? (
-              <span className="text-slate-500 text-xs sm:text-sm italic">Empty</span>
+              <span className={`text-xs sm:text-sm italic ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Empty</span>
             ) : (
               currentStep.pq.slice(0, 6).map(([dist, node], idx) => (
                 <span
                   key={idx}
-                  className="pq-item bg-purple-500/20 text-purple-300 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-mono border border-purple-500/30"
+                  className={`pq-item px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-mono border ${
+                    isDark 
+                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' 
+                      : 'bg-purple-100 text-purple-700 border-purple-300'
+                  }`}
                 >
                   ({formatDistance(dist)}, {node})
                 </span>
               ))
             )}
             {currentStep.pq.length > 6 && (
-              <span className="text-purple-400 text-[10px] sm:text-xs">
+              <span className={`text-[10px] sm:text-xs ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
                 +{currentStep.pq.length - 6} more
               </span>
             )}
@@ -224,26 +235,36 @@ export default function InfoPanel({
 
       {/* Visited Nodes */}
       {currentStep && (
-        <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3 sm:p-4">
-          <h3 className="text-xs sm:text-sm font-semibold text-violet-400 mb-2 sm:mb-3 flex items-center gap-2">
+        <div className={`rounded-xl p-3 sm:p-4 border ${
+          isDark 
+            ? 'bg-violet-500/10 border-violet-500/20' 
+            : 'bg-violet-50 border-violet-200'
+        }`}>
+          <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2 ${
+            isDark ? 'text-violet-400' : 'text-violet-600'
+          }`}>
             <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Visited ({currentStep.visited.length})
           </h3>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {currentStep.visited.length === 0 ? (
-              <span className="text-slate-500 text-xs sm:text-sm italic">None yet</span>
+              <span className={`text-xs sm:text-sm italic ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>None yet</span>
             ) : (
               currentStep.visited.slice(0, 12).map((node) => (
                 <span
                   key={node}
-                  className="bg-violet-500/20 text-violet-300 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-mono border border-violet-500/30"
+                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-mono border ${
+                    isDark 
+                      ? 'bg-violet-500/20 text-violet-300 border-violet-500/30' 
+                      : 'bg-violet-100 text-violet-700 border-violet-300'
+                  }`}
                 >
                   {node}
                 </span>
               ))
             )}
             {currentStep.visited.length > 12 && (
-              <span className="text-violet-400 text-[10px] sm:text-xs">
+              <span className={`text-[10px] sm:text-xs ${isDark ? 'text-violet-400' : 'text-violet-600'}`}>
                 +{currentStep.visited.length - 12} more
               </span>
             )}
@@ -253,8 +274,14 @@ export default function InfoPanel({
 
       {/* Blocked Nodes */}
       {blockedNodes.size > 0 && (
-        <div className="bg-slate-800/80 border border-slate-600/50 rounded-xl p-3 sm:p-4">
-          <h3 className="text-xs sm:text-sm font-semibold text-slate-300 mb-2 sm:mb-3 flex items-center gap-2">
+        <div className={`rounded-xl p-3 sm:p-4 border ${
+          isDark 
+            ? 'bg-slate-800/80 border-slate-600/50' 
+            : 'bg-slate-100 border-slate-300'
+        }`}>
+          <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2 ${
+            isDark ? 'text-slate-300' : 'text-slate-600'
+          }`}>
             <ShieldOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Blocked ({blockedNodes.size})
           </h3>
@@ -262,7 +289,11 @@ export default function InfoPanel({
             {Array.from(blockedNodes).map((node) => (
               <span
                 key={node}
-                className="bg-slate-700 text-slate-300 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-mono border border-slate-600"
+                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-mono border ${
+                  isDark 
+                    ? 'bg-slate-700 text-slate-300 border-slate-600' 
+                    : 'bg-slate-200 text-slate-600 border-slate-400'
+                }`}
               >
                 {node}
               </span>
@@ -273,8 +304,14 @@ export default function InfoPanel({
 
       {/* Shortest Path Result */}
       {shortestPath.length > 0 && (
-        <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 sm:p-4">
-          <h3 className="text-xs sm:text-sm font-semibold text-cyan-400 mb-2 sm:mb-3 flex items-center gap-2">
+        <div className={`rounded-xl p-3 sm:p-4 border ${
+          isDark 
+            ? 'bg-cyan-500/10 border-cyan-500/20' 
+            : 'bg-cyan-50 border-cyan-200'
+        }`}>
+          <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2 ${
+            isDark ? 'text-cyan-400' : 'text-cyan-600'
+          }`}>
             <Route className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Shortest Path
           </h3>
@@ -285,15 +322,15 @@ export default function InfoPanel({
                   {node}
                 </span>
                 {idx < shortestPath.length - 1 && (
-                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-400" />
+                  <ArrowRight className={`w-3 h-3 sm:w-4 sm:h-4 ${isDark ? 'text-cyan-400' : 'text-cyan-500'}`} />
                 )}
               </React.Fragment>
             ))}
           </div>
           {currentStep && endNode !== null && (
-            <p className="text-cyan-400 text-xs sm:text-sm mt-2 sm:mt-3">
+            <p className={`text-xs sm:text-sm mt-2 sm:mt-3 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
               Total Distance:{' '}
-              <span className="font-bold text-white">
+              <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 {formatDistance(currentStep.distances[endNode] || Infinity)}
               </span>
             </p>
@@ -302,8 +339,14 @@ export default function InfoPanel({
       )}
 
       {/* Animated Dijkstra Pseudocode */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4 overflow-hidden">
-        <h3 className="text-xs sm:text-sm font-semibold text-slate-300 mb-2 sm:mb-3 flex items-center gap-2">
+      <div className={`rounded-xl p-3 sm:p-4 overflow-hidden border ${
+        isDark 
+          ? 'bg-slate-800/50 border-slate-700/50' 
+          : 'bg-slate-100 border-slate-200'
+      }`}>
+        <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2 ${
+          isDark ? 'text-slate-300' : 'text-slate-600'
+        }`}>
           <Code2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           Pseudocode
         </h3>
@@ -318,10 +361,16 @@ export default function InfoPanel({
                 className={`
                   relative py-0.5 px-2 rounded transition-all duration-300 ease-out
                   ${isActive 
-                    ? 'bg-gradient-to-r from-cyan-500/30 to-purple-500/20 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.4)]' 
+                    ? isDark
+                      ? 'bg-gradient-to-r from-cyan-500/30 to-purple-500/20 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.4)]'
+                      : 'bg-gradient-to-r from-cyan-200/70 to-purple-200/50 text-cyan-700 shadow-md'
                     : isExecuted
-                    ? 'text-emerald-400/70'
-                    : 'text-slate-500'
+                    ? isDark 
+                      ? 'text-emerald-400/70' 
+                      : 'text-emerald-600/70'
+                    : isDark 
+                      ? 'text-slate-500' 
+                      : 'text-slate-400'
                   }
                 `}
                 style={{ 
@@ -336,12 +385,18 @@ export default function InfoPanel({
                 
                 {/* Executed line checkmark */}
                 {isExecuted && (
-                  <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-emerald-500 text-[8px]">✓</span>
+                  <span className={`absolute left-0.5 top-1/2 -translate-y-1/2 text-[8px] ${
+                    isDark ? 'text-emerald-500' : 'text-emerald-600'
+                  }`}>✓</span>
                 )}
                 
                 {/* Line number */}
                 <span className={`inline-block w-5 mr-2 text-right ${
-                  isActive ? 'text-cyan-400 font-bold' : isExecuted ? 'text-emerald-500/60' : 'text-slate-600'
+                  isActive 
+                    ? isDark ? 'text-cyan-400 font-bold' : 'text-cyan-600 font-bold'
+                    : isExecuted 
+                    ? isDark ? 'text-emerald-500/60' : 'text-emerald-600/60'
+                    : isDark ? 'text-slate-600' : 'text-slate-400'
                 }`}>
                   {idx + 1}
                 </span>
@@ -357,11 +412,11 @@ export default function InfoPanel({
         
         {/* Execution indicator */}
         {activeLineIndex >= 0 && (
-          <div className="mt-3 pt-2 border-t border-slate-700/50">
+          <div className={`mt-3 pt-2 border-t ${isDark ? 'border-slate-700/50' : 'border-slate-200'}`}>
             <div className="flex items-center gap-2 text-[10px] sm:text-xs">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
-              <span className="text-slate-400">
-                Executing: <span className="text-cyan-300 font-mono font-medium">Line {activeLineIndex + 1}</span>
+              <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
+                Executing: <span className={`font-mono font-medium ${isDark ? 'text-cyan-300' : 'text-cyan-600'}`}>Line {activeLineIndex + 1}</span>
               </span>
             </div>
           </div>
@@ -369,9 +424,9 @@ export default function InfoPanel({
         
         {/* No active line - show waiting state */}
         {activeLineIndex < 0 && stepNumber === 0 && (
-          <div className="mt-3 pt-2 border-t border-slate-700/50">
-            <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500">
-              <span className="w-2 h-2 rounded-full bg-slate-600" />
+          <div className={`mt-3 pt-2 border-t ${isDark ? 'border-slate-700/50' : 'border-slate-200'}`}>
+            <div className={`flex items-center gap-2 text-[10px] sm:text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <span className={`w-2 h-2 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} />
               <span>Waiting to start...</span>
             </div>
           </div>

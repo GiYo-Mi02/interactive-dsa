@@ -26,8 +26,11 @@ import {
   Beaker,
   FileText,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 type Difficulty = "easy" | "medium" | "hard";
 type Category = "arrays" | "sorting" | "searching" | "trees" | "graphs" | "hashing" | "linked-lists" | "all";
@@ -65,6 +68,8 @@ const CATEGORIES: { value: Category; label: string; icon: React.ReactNode }[] = 
 const QUESTION_COUNTS = [5, 10, 15, 20];
 
 export default function QuizPage() {
+  const { isDark, toggleTheme } = useTheme();
+  
   // Quiz setup state
   const [category, setCategory] = useState<Category>("all");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
@@ -376,34 +381,46 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
     : 0;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+    <main className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 text-slate-900'}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 p-4 border-b border-cyan-500/20 bg-slate-900/90 backdrop-blur-sm">
+      <header className={`sticky top-0 z-50 p-4 border-b backdrop-blur-sm ${isDark ? 'border-cyan-500/20 bg-slate-900/90' : 'border-slate-300 bg-white/90'}`}>
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link 
               href="/"
-              className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-2"
+              className={`transition-colors flex items-center gap-2 ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-500'}`}
             >
               <ArrowLeft className="w-5 h-5" />
               Back
             </Link>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent flex items-center gap-2">
-              <FileText className="w-6 h-6 text-cyan-400" />
+              <FileText className={`w-6 h-6 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
               DSA Quiz
             </h1>
           </div>
           
-          {quizStarted && !quizState.isComplete && (
-            <div className="flex items-center gap-4">
-              <span className="text-slate-400 text-sm">
-                Question {quizState.currentIndex + 1} / {quizState.questions.length}
-              </span>
-              <span className="text-cyan-400 font-semibold">
-                Score: {quizState.score}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {quizStarted && !quizState.isComplete && (
+              <>
+                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Question {quizState.currentIndex + 1} / {quizState.questions.length}
+                </span>
+                <span className={`font-semibold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
+                  Score: {quizState.score}
+                </span>
+              </>
+            )}
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg transition-colors ${isDark 
+                ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400' 
+                : 'bg-slate-200 hover:bg-slate-300 text-slate-700'}`}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -412,15 +429,15 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
           /* Quiz Setup */
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-2">Test Your Knowledge</h2>
-              <p className="text-slate-400">
+              <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Test Your Knowledge</h2>
+              <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
                 Challenge yourself with AI-generated questions on data structures and algorithms
               </p>
             </div>
 
             {/* Category Selection */}
-            <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 p-6">
-              <h3 className="text-cyan-400 font-semibold mb-4 text-lg flex items-center gap-2">
+            <div className={`rounded-xl border p-6 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+              <h3 className={`font-semibold mb-4 text-lg flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
                 <BookOpen className="w-5 h-5" />
                 Select Topic
               </h3>
@@ -432,7 +449,9 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
                     className={`p-4 rounded-xl border-2 transition-all ${
                       category === cat.value
                         ? "border-cyan-500 bg-cyan-500/20 text-cyan-400"
-                        : "border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600"
+                        : isDark 
+                          ? "border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600"
+                          : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
                     }`}
                   >
                     <span className="block mb-1 flex justify-center">{cat.icon}</span>
@@ -443,8 +462,8 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
             </div>
 
             {/* Difficulty Selection */}
-            <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 p-6">
-              <h3 className="text-cyan-400 font-semibold mb-4 text-lg flex items-center gap-2">
+            <div className={`rounded-xl border p-6 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+              <h3 className={`font-semibold mb-4 text-lg flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
                 <Target className="w-5 h-5" />
                 Difficulty
               </h3>
@@ -460,7 +479,9 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
                           : diff === "medium"
                           ? "border-yellow-500 bg-yellow-500/20 text-yellow-400"
                           : "border-red-500 bg-red-500/20 text-red-400"
-                        : "border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600"
+                        : isDark 
+                          ? "border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600"
+                          : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
                     }`}
                   >
                     <span className="block mb-1 flex justify-center">
@@ -473,8 +494,8 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
             </div>
 
             {/* Question Count */}
-            <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 p-6">
-              <h3 className="text-cyan-400 font-semibold mb-4 text-lg flex items-center gap-2">
+            <div className={`rounded-xl border p-6 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+              <h3 className={`font-semibold mb-4 text-lg flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
                 <Hash className="w-5 h-5" />
                 Number of Questions
               </h3>
@@ -486,7 +507,9 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
                     className={`p-4 rounded-xl border-2 transition-all ${
                       questionCount === count
                         ? "border-purple-500 bg-purple-500/20 text-purple-400"
-                        : "border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600"
+                        : isDark 
+                          ? "border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600"
+                          : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
                     }`}
                   >
                     <span className="text-2xl font-bold block">{count}</span>
@@ -518,7 +541,7 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
         ) : quizState.isComplete ? (
           /* Quiz Complete */
           <div className="space-y-6">
-            <div className="text-center bg-slate-900/80 rounded-xl border border-cyan-500/30 p-8">
+            <div className={`text-center rounded-xl border p-8 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
               <div className="mb-4 flex justify-center">
                 {scorePercentage >= 80 ? (
                   <Trophy className="w-16 h-16 text-yellow-400" />
@@ -528,14 +551,14 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
                   <BookOpen className="w-16 h-16 text-purple-400" />
                 )}
               </div>
-              <h2 className="text-3xl font-bold mb-2">Quiz Complete!</h2>
+              <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Quiz Complete!</h2>
               <p className={`text-5xl font-bold ${getScoreColor(scorePercentage)} mb-2`}>
                 {quizState.score} / {quizState.questions.length}
               </p>
-              <p className="text-slate-400 text-lg">
+              <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 {scorePercentage}% Correct
               </p>
-              <p className="text-slate-500 mt-4">
+              <p className={`mt-4 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
                 {scorePercentage >= 80 
                   ? "Excellent work! You really know your stuff!"
                   : scorePercentage >= 60 
@@ -545,8 +568,8 @@ Return ONLY the JSON array, starting with [ and ending with ]`,
             </div>
 
             {/* Review Answers */}
-            <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 p-6">
-              <h3 className="text-cyan-400 font-semibold mb-4 text-lg flex items-center gap-2">
+            <div className={`rounded-xl border p-6 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+              <h3 className={`font-semibold mb-4 text-lg flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
                 <FileText className="w-5 h-5" />
                 Review Answers
               </h3>

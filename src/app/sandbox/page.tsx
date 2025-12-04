@@ -16,7 +16,9 @@ import {
   Wand2,
   Terminal,
   CheckCircle,
-  XCircle
+  XCircle,
+  Sun,
+  Moon
 } from "lucide-react";
 import { 
   ALGORITHM_TEMPLATES, 
@@ -24,6 +26,7 @@ import {
   ExecutionResult,
   AlgorithmTemplate
 } from "./types";
+import { useTheme } from "@/context/ThemeContext";
 
 // Dynamically import Monaco Editor to avoid SSR issues
 const MonacoEditor = dynamic(
@@ -73,6 +76,7 @@ function useIsMobile() {
 
 export default function SandboxPage() {
   const isMobile = useIsMobile();
+  const { isDark, toggleTheme } = useTheme();
   
   // Code editor state
   const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>("python");
@@ -223,20 +227,20 @@ export default function SandboxPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+    <main className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 text-slate-900'}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 p-3 sm:p-4 border-b border-cyan-500/20 bg-slate-900/90 backdrop-blur-sm">
+      <header className={`sticky top-0 z-50 p-3 sm:p-4 border-b backdrop-blur-sm ${isDark ? 'border-cyan-500/20 bg-slate-900/90' : 'border-slate-300 bg-white/90'}`}>
         <div className="max-w-[1800px] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4">
             <Link 
               href="/"
-              className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
+              className={`transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-500'}`}
             >
               <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Back</span>
             </Link>
             <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent flex items-center gap-2">
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
+              <Sparkles className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
               Algorithm Sandbox
             </h1>
           </div>
@@ -246,7 +250,9 @@ export default function SandboxPage() {
             <select
               value={selectedAlgorithm}
               onChange={(e) => setSelectedAlgorithm(e.target.value as AlgorithmTemplate)}
-              className="flex-1 sm:flex-none px-2 sm:px-4 py-2 bg-slate-800 border border-cyan-500/30 rounded-lg text-cyan-400 text-sm focus:outline-none focus:border-cyan-500"
+              className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 border rounded-lg text-sm focus:outline-none ${isDark 
+                ? 'bg-slate-800 border-cyan-500/30 text-cyan-400 focus:border-cyan-500' 
+                : 'bg-white border-slate-300 text-slate-700 focus:border-cyan-500'}`}
             >
               {ALGORITHM_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -255,7 +261,7 @@ export default function SandboxPage() {
               ))}
             </select>
             
-            <div className="flex gap-1 bg-slate-800 rounded-lg p-1 border border-cyan-500/30">
+            <div className={`flex gap-1 rounded-lg p-1 border ${isDark ? 'bg-slate-800 border-cyan-500/30' : 'bg-slate-100 border-slate-300'}`}>
               {(["python", "java", "csharp"] as SupportedLanguage[]).map((lang) => (
                 <button
                   key={lang}
@@ -263,13 +269,24 @@ export default function SandboxPage() {
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md transition-all text-xs sm:text-sm ${
                     selectedLanguage === lang
                       ? "bg-cyan-500 text-white"
-                      : "text-cyan-400 hover:bg-slate-700"
+                      : isDark ? "text-cyan-400 hover:bg-slate-700" : "text-slate-600 hover:bg-slate-200"
                   }`}
                 >
                   {lang === "csharp" ? "C#" : lang.charAt(0).toUpperCase() + lang.slice(1)}
                 </button>
               ))}
             </div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg transition-colors ${isDark 
+                ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400' 
+                : 'bg-slate-200 hover:bg-slate-300 text-slate-700'}`}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
           </div>
         </div>
       </header>
@@ -279,11 +296,11 @@ export default function SandboxPage() {
         {/* Code Editor Section */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           {/* Editor */}
-          <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 overflow-hidden flex flex-col min-h-[300px] sm:min-h-[400px] lg:flex-1">
-            <div className="px-3 sm:px-4 py-2 bg-slate-800/50 border-b border-cyan-500/20 flex items-center justify-between gap-2">
-              <span className="text-cyan-400 text-xs sm:text-sm font-mono truncate">
+          <div className={`rounded-xl border overflow-hidden flex flex-col h-[350px] sm:h-[450px] lg:h-auto lg:flex-1 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+            <div className={`px-3 sm:px-4 py-2 border-b flex items-center justify-between gap-2 shrink-0 ${isDark ? 'bg-slate-800/50 border-cyan-500/20' : 'bg-slate-100 border-slate-200'}`}>
+              <span className={`text-xs sm:text-sm font-mono truncate ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
                 {selectedAlgorithm.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} 
-                <span className="text-slate-500 ml-1 sm:ml-2 hidden sm:inline">
+                <span className={`ml-1 sm:ml-2 hidden sm:inline ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
                   ({selectedLanguage === "csharp" ? "C#" : selectedLanguage})
                 </span>
               </span>
@@ -309,47 +326,50 @@ export default function SandboxPage() {
                 )}
               </button>
             </div>
-            <div className="flex-1 min-h-[250px] sm:min-h-[300px]">
+            <div className="flex-1 relative">
               {isMobile ? (
                 /* Mobile: Use textarea fallback */
                 <textarea
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-full bg-slate-950 text-slate-100 font-mono text-sm p-4 resize-none focus:outline-none leading-relaxed"
+                  className={`absolute inset-0 w-full h-full font-mono text-sm p-4 resize-none focus:outline-none leading-relaxed ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-900 text-slate-100'}`}
                   spellCheck={false}
                   autoCapitalize="off"
                   autoCorrect="off"
                 />
               ) : (
                 /* Desktop: Use Monaco Editor */
-                <MonacoEditor
-                  height="100%"
-                  language={getMonacoLanguage(selectedLanguage)}
-                  value={code}
-                  onChange={(value) => setCode(value || "")}
-                  onMount={(editor) => { editorRef.current = editor; }}
-                  theme="vs-dark"
-                  options={{
-                    fontSize: 13,
-                    fontFamily: "'Fira Code', 'Cascadia Code', Consolas, monospace",
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    padding: { top: 12, bottom: 12 },
-                    lineNumbers: "on",
-                    roundedSelection: true,
-                    automaticLayout: true,
-                    tabSize: 4,
-                    wordWrap: "on",
-                  }}
-                />
+                <div className="absolute inset-0">
+                  <MonacoEditor
+                    height="100%"
+                    width="100%"
+                    language={getMonacoLanguage(selectedLanguage)}
+                    value={code}
+                    onChange={(value) => setCode(value || "")}
+                    onMount={(editor) => { editorRef.current = editor; }}
+                    theme={isDark ? "vs-dark" : "vs"}
+                    options={{
+                      fontSize: 14,
+                      fontFamily: "'Fira Code', 'Cascadia Code', Consolas, monospace",
+                      minimap: { enabled: false },
+                      scrollBeyondLastLine: false,
+                      padding: { top: 16, bottom: 16 },
+                      lineNumbers: "on",
+                      roundedSelection: true,
+                      automaticLayout: true,
+                      tabSize: 4,
+                      wordWrap: "on",
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
 
           {/* Output Section */}
-          <div className="h-36 sm:h-48 bg-slate-900/80 rounded-xl border border-cyan-500/30 overflow-hidden flex flex-col">
-            <div className="px-3 sm:px-4 py-2 bg-slate-800/50 border-b border-cyan-500/20 flex items-center justify-between shrink-0">
-              <span className="text-cyan-400 text-sm flex items-center gap-2">
+          <div className={`h-36 sm:h-48 rounded-xl border overflow-hidden flex flex-col ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+            <div className={`px-3 sm:px-4 py-2 border-b flex items-center justify-between shrink-0 ${isDark ? 'bg-slate-800/50 border-cyan-500/20' : 'bg-slate-100 border-slate-200'}`}>
+              <span className={`text-sm flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
                 <Terminal className="w-4 h-4" />
                 Output
               </span>
@@ -361,18 +381,18 @@ export default function SandboxPage() {
                 </span>
               )}
             </div>
-            <div className="flex-1 p-3 sm:p-4 font-mono text-xs sm:text-sm overflow-y-auto overscroll-contain">
+            <div className={`flex-1 p-3 sm:p-4 font-mono text-xs sm:text-sm overflow-y-auto overscroll-contain ${isDark ? '' : 'bg-slate-50'}`}>
               {executionResult ? (
                 <div>
                   {executionResult.output && (
-                    <pre className="text-green-400 whitespace-pre-wrap break-words">{executionResult.output}</pre>
+                    <pre className={`whitespace-pre-wrap break-words ${isDark ? 'text-green-400' : 'text-green-600'}`}>{executionResult.output}</pre>
                   )}
                   {executionResult.error && (
                     <pre className="text-red-400 whitespace-pre-wrap break-words">{executionResult.error}</pre>
                   )}
                 </div>
               ) : (
-                <span className="text-slate-500 italic">
+                <span className={`italic ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   Click &quot;Run&quot; to see output...
                 </span>
               )}
@@ -383,8 +403,8 @@ export default function SandboxPage() {
         {/* AI Tutor Section */}
         <div className="flex flex-col gap-4 lg:overflow-hidden">
           {/* Difficulty Selector */}
-          <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 p-3 sm:p-4 shrink-0">
-            <h3 className="text-cyan-400 font-semibold mb-3 flex items-center gap-2 text-sm sm:text-base">
+          <div className={`rounded-xl border p-3 sm:p-4 shrink-0 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+            <h3 className={`font-semibold mb-3 flex items-center gap-2 text-sm sm:text-base ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
               <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
               AI Tutor Mode
             </h3>
@@ -396,7 +416,7 @@ export default function SandboxPage() {
                   className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition-all flex items-center justify-center gap-1 ${
                     difficultyMode === mode
                       ? "bg-purple-500 text-white"
-                      : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                      : isDark ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
                   {mode === "basic" && <><Sparkles className="w-3 h-3" /> Basic</>}
@@ -411,14 +431,18 @@ export default function SandboxPage() {
               <button
                 onClick={getAIExplanation}
                 disabled={isLoadingAI}
-                className="px-2 sm:px-3 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-all text-xs sm:text-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className={`px-2 sm:px-3 py-2 rounded-lg transition-all text-xs sm:text-sm disabled:opacity-50 flex items-center justify-center gap-1.5 ${isDark 
+                  ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30' 
+                  : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 hover:bg-cyan-500/20'}`}
               >
                 <Lightbulb className="w-4 h-4" />
                 Explain
               </button>
               <Link
                 href="/quiz"
-                className="px-2 sm:px-3 py-2 bg-purple-500/20 border border-purple-500/50 rounded-lg text-purple-400 hover:bg-purple-500/30 transition-all text-xs sm:text-sm text-center flex items-center justify-center gap-1.5"
+                className={`px-2 sm:px-3 py-2 rounded-lg transition-all text-xs sm:text-sm text-center flex items-center justify-center gap-1.5 ${isDark 
+                  ? 'bg-purple-500/20 border border-purple-500/50 text-purple-400 hover:bg-purple-500/30' 
+                  : 'bg-purple-500/10 border border-purple-500/30 text-purple-600 hover:bg-purple-500/20'}`}
               >
                 <FileText className="w-4 h-4" />
                 Take Quiz
@@ -427,10 +451,10 @@ export default function SandboxPage() {
           </div>
 
           {/* Try It Yourself */}
-          <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 p-3 sm:p-4 shrink-0">
+          <div className={`rounded-xl border p-3 sm:p-4 shrink-0 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
             <button
               onClick={() => setShowTryItYourself(!showTryItYourself)}
-              className="w-full flex items-center justify-between text-cyan-400 font-semibold text-sm sm:text-base"
+              className={`w-full flex items-center justify-between font-semibold text-sm sm:text-base ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}
             >
               <span className="flex items-center gap-2">
                 <Wand2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -443,14 +467,16 @@ export default function SandboxPage() {
             
             {showTryItYourself && (
               <div className="mt-3 sm:mt-4 space-y-3">
-                <p className="text-slate-400 text-xs sm:text-sm">
+                <p className={`text-xs sm:text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                   Predict what the output will be before running the code!
                 </p>
                 <textarea
                   value={prediction}
                   onChange={(e) => setPrediction(e.target.value)}
                   placeholder="Enter your prediction..."
-                  className="w-full h-20 sm:h-24 bg-slate-800 border border-slate-600 rounded-lg p-2.5 sm:p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 resize-none"
+                  className={`w-full h-20 sm:h-24 border rounded-lg p-2.5 sm:p-3 text-xs sm:text-sm focus:outline-none focus:border-cyan-500 resize-none ${isDark 
+                    ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-500' 
+                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'}`}
                 />
                 <button
                   onClick={checkPrediction}
@@ -461,8 +487,10 @@ export default function SandboxPage() {
                 </button>
                 
                 {predictionFeedback && (
-                  <div className="mt-3 p-2.5 sm:p-3 bg-slate-800/50 rounded-lg border border-cyan-500/20 max-h-32 overflow-y-auto overscroll-contain">
-                    <p className="text-xs sm:text-sm text-slate-300 whitespace-pre-wrap">{predictionFeedback}</p>
+                  <div className={`mt-3 p-2.5 sm:p-3 rounded-lg border max-h-32 overflow-y-auto overscroll-contain ${isDark 
+                    ? 'bg-slate-800/50 border-cyan-500/20' 
+                    : 'bg-slate-50 border-slate-200'}`}>
+                    <p className={`text-xs sm:text-sm whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{predictionFeedback}</p>
                   </div>
                 )}
               </div>
@@ -470,35 +498,35 @@ export default function SandboxPage() {
           </div>
 
           {/* AI Explanation Display */}
-          <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 overflow-hidden flex flex-col min-h-[250px] sm:min-h-[300px] lg:flex-1">
-            <div className="px-3 sm:px-4 py-2 bg-slate-800/50 border-b border-cyan-500/20 flex items-center justify-between shrink-0">
-              <span className="text-cyan-400 text-sm flex items-center gap-2">
+          <div className={`rounded-xl border overflow-hidden flex flex-col min-h-[250px] sm:min-h-[300px] lg:flex-1 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+            <div className={`px-3 sm:px-4 py-2 border-b flex items-center justify-between shrink-0 ${isDark ? 'bg-slate-800/50 border-cyan-500/20' : 'bg-slate-100 border-slate-200'}`}>
+              <span className={`text-sm flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
                 <Lightbulb className="w-4 h-4" />
                 AI Explanation
               </span>
               {aiExplanation && (
-                <span className="text-xs text-slate-500">
+                <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   {aiExplanation.difficulty} mode
                 </span>
               )}
             </div>
             <div 
-              className="flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain"
+              className={`flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain ${isDark ? '' : 'bg-slate-50'}`}
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               {isLoadingAI ? (
                 <div className="flex items-center justify-center h-full min-h-[150px]">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-cyan-400 text-sm">Thinking...</span>
+                    <span className={`text-sm ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>Thinking...</span>
                   </div>
                 </div>
               ) : aiExplanation ? (
-                <div className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm leading-relaxed break-words">
+                <div className={`whitespace-pre-wrap text-xs sm:text-sm leading-relaxed break-words ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                   {aiExplanation.content}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full min-h-[150px] text-slate-500 text-xs sm:text-sm text-center px-4">
+                <div className={`flex items-center justify-center h-full min-h-[150px] text-xs sm:text-sm text-center px-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   Click &quot;Explain&quot; to get AI-powered explanations
                 </div>
               )}
@@ -506,8 +534,8 @@ export default function SandboxPage() {
           </div>
 
           {/* Input Section */}
-          <div className="bg-slate-900/80 rounded-xl border border-cyan-500/30 p-3 sm:p-4 shrink-0">
-            <label className="text-cyan-400 text-xs sm:text-sm block mb-2 flex items-center gap-2">
+          <div className={`rounded-xl border p-3 sm:p-4 shrink-0 ${isDark ? 'bg-slate-900/80 border-cyan-500/30' : 'bg-white border-slate-300 shadow-sm'}`}>
+            <label className={`text-xs sm:text-sm block mb-2 flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
               <Terminal className="w-4 h-4" />
               Program Input (stdin)
             </label>
@@ -515,7 +543,9 @@ export default function SandboxPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Enter input for your program..."
-              className="w-full h-16 sm:h-20 bg-slate-800 border border-slate-600 rounded-lg p-2.5 sm:p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 resize-none font-mono"
+              className={`w-full h-16 sm:h-20 border rounded-lg p-2.5 sm:p-3 text-xs sm:text-sm focus:outline-none focus:border-cyan-500 resize-none font-mono ${isDark 
+                ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-500' 
+                : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'}`}
             />
           </div>
         </div>
