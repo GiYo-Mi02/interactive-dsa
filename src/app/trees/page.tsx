@@ -7,6 +7,7 @@ import {
   RefreshCw, GitBranch, ChevronDown
 } from 'lucide-react';
 import TreeVisualizer from './TreeVisualizer';
+import AIExplanationPanel from '@/components/AIExplanationPanel';
 import { TreeAlgorithm, TreeStep, TREE_INFO, TreeNode } from './types';
 import { 
   generateBST,
@@ -442,7 +443,26 @@ export default function TreesPage() {
           </div>
 
           {/* Info Panel */}
-          <div className="lg:col-span-4 xl:col-span-3">
+          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+            {/* AI Explanation Panel */}
+            <AIExplanationPanel
+              algorithm={info.name}
+              getState={() => ({
+                stepDescription: currentStep?.explanation || 'Algorithm not started yet',
+                rawState: {
+                  currentNode: currentStep?.currentNode ?? null,
+                  visitedNodes: currentStep?.visitedNodes ?? [],
+                  resultOrder: currentStep?.resultOrder ?? [],
+                  queue: currentStep?.queue ?? [],
+                  rotationType: currentStep?.rotationType ?? null,
+                  treeValues: nodes.map(n => n.value),
+                  algorithm: algorithm,
+                  stepNumber: currentStepIndex + 1,
+                  totalSteps: steps.length,
+                },
+              })}
+            />
+            
             <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 space-y-4">
               {/* Algorithm Info */}
               <div>

@@ -7,6 +7,7 @@ import {
   RefreshCw, Link2, ChevronDown, RotateCcw, GitMerge
 } from 'lucide-react';
 import LinkedListVisualizer from './LinkedListVisualizer';
+import AIExplanationPanel from '@/components/AIExplanationPanel';
 import { LinkedListAlgorithm, LinkedListStep, LINKED_LIST_INFO, ListNode } from './types';
 import { 
   generateLinkedList, 
@@ -438,7 +439,27 @@ export default function LinkedListPage() {
           </div>
 
           {/* Info Panel */}
-          <div className="lg:col-span-4 xl:col-span-3">
+          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+            {/* AI Explanation Panel */}
+            <AIExplanationPanel
+              algorithm={info.name}
+              getState={() => ({
+                stepDescription: currentStep?.explanation || 'Algorithm not started yet',
+                rawState: {
+                  currentPointer: currentStep?.currentPointer ?? null,
+                  slowPointer: currentStep?.slowPointer ?? null,
+                  fastPointer: currentStep?.fastPointer ?? null,
+                  prevPointer: currentStep?.prevPointer ?? null,
+                  nodes: currentStep?.nodes ?? nodes,
+                  listValues: nodes.map(n => n.value),
+                  hasCycle,
+                  algorithm: algorithm,
+                  stepNumber: currentStepIndex + 1,
+                  totalSteps: steps.length,
+                },
+              })}
+            />
+            
             <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 space-y-4">
               {/* Algorithm Info */}
               <div>

@@ -7,6 +7,7 @@ import ControlPanel from './ControlPanel';
 import InfoPanel from './InfoPanel';
 import AlgorithmTable from './AlgorithmTable';
 import Legend from './Legend';
+import AIExplanationPanel from '@/components/AIExplanationPanel';
 import { Graph, PathStep } from './types';
 import { generateGraph } from '@/lib/graphGenerator';
 import { dijkstra, getShortestPath } from '@/lib/dijkstra';
@@ -293,6 +294,27 @@ export default function VisualizerPage() {
 
           {/* Right Sidebar - Info & Legend */}
           <div className="lg:col-span-4 xl:col-span-3 order-2 space-y-4 lg:space-y-6">
+            {/* AI Explanation Panel */}
+            <AIExplanationPanel
+              algorithm="Dijkstra's Algorithm"
+              getState={() => ({
+                stepDescription: currentStep?.explanation || 'Algorithm not started yet',
+                rawState: {
+                  currentNode: currentStep?.currentNode ?? null,
+                  distances: currentStep?.distances ?? {},
+                  visited: currentStep?.visited ?? [],
+                  priorityQueue: currentStep?.pq ?? [],
+                  currentEdge: currentStep?.currentEdge ?? null,
+                  startNode,
+                  endNode,
+                  blockedNodes: Array.from(blockedNodes),
+                  shortestPath,
+                  stepNumber: currentStepIndex + 1,
+                  totalSteps: steps.length,
+                },
+              })}
+            />
+            
             <InfoPanel
               currentStep={currentStep}
               stepNumber={currentStepIndex + 1}

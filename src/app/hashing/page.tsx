@@ -21,6 +21,7 @@ import {
   generateRandomKeys,
 } from './algorithms';
 import { HashingVisualizer } from './HashingVisualizer';
+import AIExplanationPanel from '@/components/AIExplanationPanel';
 
 export default function HashingPage() {
   const [algorithm, setAlgorithm] = useState<HashAlgorithm>('hash-function');
@@ -162,6 +163,28 @@ export default function HashingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Control Panel */}
           <div className="lg:col-span-1 space-y-4">
+            {/* AI Explanation Panel */}
+            <AIExplanationPanel
+              algorithm={info.name}
+              getState={() => {
+                const step = steps[currentStep];
+                return {
+                  stepDescription: step?.explanation || 'Algorithm not started yet',
+                  rawState: {
+                    buckets: step?.buckets ?? [],
+                    currentKey: step?.currentKey ?? null,
+                    hashValue: step?.hashValue ?? null,
+                    probeIndex: step?.probeIndex ?? null,
+                    probeCount: step?.probeCount ?? null,
+                    tableSize,
+                    algorithm,
+                    stepNumber: currentStep + 1,
+                    totalSteps: steps.length,
+                  },
+                };
+              }}
+            />
+            
             {/* Algorithm Info */}
             <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
               <h3 className="text-lg font-semibold text-white mb-2">{info.name}</h3>

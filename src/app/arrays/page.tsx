@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import ArrayVisualizer from './ArrayVisualizer';
 import AlgorithmInfoPanel from './AlgorithmInfoPanel';
+import AIExplanationPanel from '@/components/AIExplanationPanel';
 import { ArrayAlgorithm, ArrayStep, ALGORITHM_INFO } from './types';
 import { 
   generateRandomArray, 
@@ -462,7 +463,28 @@ export default function ArraysPage() {
           </div>
 
           {/* Info Panel */}
-          <div className="lg:col-span-4 xl:col-span-3">
+          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+            {/* AI Explanation Panel */}
+            <AIExplanationPanel
+              algorithm={ALGORITHM_INFO[algorithm]?.name || algorithm}
+              getState={() => ({
+                stepDescription: currentStep?.explanation || 'Algorithm not started yet',
+                rawState: {
+                  array: currentStep?.array || array,
+                  comparing: currentStep?.comparing || [],
+                  swapping: currentStep?.swapping || [],
+                  sorted: currentStep?.sorted || [],
+                  pivot: currentStep?.pivot,
+                  left: currentStep?.left,
+                  right: currentStep?.right,
+                  found: currentStep?.found,
+                  target,
+                  stepNumber: currentStepIndex + 1,
+                  totalSteps: steps.length,
+                },
+              })}
+            />
+            
             <AlgorithmInfoPanel
               algorithm={algorithm}
               currentStep={currentStep}
