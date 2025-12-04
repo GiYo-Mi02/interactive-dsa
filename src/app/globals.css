@@ -164,6 +164,19 @@ table tr {
   background-clip: text;
 }
 
+/* Mobile scroll fix - prevent rubber banding on iOS */
+.overscroll-contain {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for scrollable containers on mobile */
+@supports (-webkit-touch-callout: none) {
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* Slider input styling */
 .slider-input::-webkit-slider-thumb {
   -webkit-appearance: none;

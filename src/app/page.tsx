@@ -2,301 +2,577 @@ import Link from "next/link";
 import { 
   Network, 
   ArrowRight,
-  Sparkles,
   LayoutList,
   Link2,
   GitBranch,
   Hash,
-  Search,
-  ArrowUpDown,
-  Repeat,
-  ListTree,
-  RotateCcw,
-  SplitSquareHorizontal
+  Code2,
+  Zap,
+  BookOpen,
+  Cpu,
+  Layers,
+  Target,
+  ChevronRight,
+  Github,
+  ExternalLink
 } from "lucide-react";
 
 const algorithmCategories = [
   {
     id: 'graphs',
     title: 'Graph Algorithms',
-    description: 'Explore pathfinding and graph traversal algorithms',
+    description: 'Pathfinding & traversal',
     href: '/visualizer',
     icon: Network,
-    gradient: 'from-cyan-500 to-blue-600',
-    shadowColor: 'shadow-cyan-500/25',
-    borderHover: 'hover:border-cyan-500/50',
-    algorithms: ["Dijkstra's Algorithm", 'Dynamic Rerouting', 'Shortest Path'],
+    color: 'cyan',
+    algorithms: ["Dijkstra's", 'Shortest Path'],
+    stats: '3 algorithms',
   },
   {
     id: 'arrays',
     title: 'Array Algorithms',
-    description: 'Searching, sorting, and manipulation techniques',
+    description: 'Search & sort operations',
     href: '/arrays',
     icon: LayoutList,
-    gradient: 'from-purple-500 to-pink-600',
-    shadowColor: 'shadow-purple-500/25',
-    borderHover: 'hover:border-purple-500/50',
-    algorithms: ['Linear Search', 'Binary Search', 'Bubble Sort', 'Quick Sort', 'Merge Sort'],
+    color: 'violet',
+    algorithms: ['Binary Search', 'Quick Sort', 'Merge Sort'],
+    stats: '5 algorithms',
   },
   {
     id: 'linked-lists',
-    title: 'Linked List Algorithms',
-    description: 'Pointer manipulation and list operations',
+    title: 'Linked Lists',
+    description: 'Pointer manipulation',
     href: '/linked-list',
     icon: Link2,
-    gradient: 'from-emerald-500 to-teal-600',
-    shadowColor: 'shadow-emerald-500/25',
-    borderHover: 'hover:border-emerald-500/50',
-    algorithms: ['Traversal', "Floyd's Cycle Detection", 'Reversal', 'Merge Sorted Lists'],
+    color: 'emerald',
+    algorithms: ['Traversal', 'Cycle Detection'],
+    stats: '4 algorithms',
   },
   {
     id: 'trees',
     title: 'Tree Algorithms',
-    description: 'Traversals, balancing, and tree operations',
+    description: 'Traversals & balancing',
     href: '/trees',
     icon: GitBranch,
-    gradient: 'from-orange-500 to-amber-600',
-    shadowColor: 'shadow-orange-500/25',
-    borderHover: 'hover:border-orange-500/50',
-    algorithms: ['In-Order DFS', 'Pre-Order DFS', 'Post-Order DFS', 'Level-Order BFS', 'AVL Rotations'],
+    color: 'amber',
+    algorithms: ['DFS', 'BFS', 'AVL Rotations'],
+    stats: '5 algorithms',
   },
   {
     id: 'hashing',
-    title: 'Hashing Algorithms',
-    description: 'Hash functions and collision resolution',
+    title: 'Hashing',
+    description: 'Hash functions & collision',
     href: '/hashing',
     icon: Hash,
-    gradient: 'from-rose-500 to-red-600',
-    shadowColor: 'shadow-rose-500/25',
-    borderHover: 'hover:border-rose-500/50',
-    algorithms: ['Hash Functions', 'Linear Probing', 'Chaining'],
+    color: 'rose',
+    algorithms: ['Linear Probing', 'Chaining'],
+    stats: '3 algorithms',
   },
 ];
 
 const features = [
   {
-    icon: Search,
-    title: 'Search Algorithms',
-    description: 'Linear O(n) and Binary O(log n) search techniques',
+    icon: Zap,
+    title: 'Real-time Visualization',
+    description: 'Watch algorithms execute step-by-step with smooth animations',
   },
   {
-    icon: ArrowUpDown,
-    title: 'Sorting Algorithms',
-    description: 'From O(n²) bubble sort to O(n log n) merge sort',
+    icon: Code2,
+    title: 'Live Code Execution',
+    description: 'Write and run code in Java, C#, and Python instantly',
   },
   {
-    icon: Repeat,
-    title: "Floyd's Cycle Detection",
-    description: 'Tortoise and Hare pointer technique',
+    icon: BookOpen,
+    title: 'AI-Powered Learning',
+    description: 'Get personalized explanations adapted to your level',
   },
   {
-    icon: ListTree,
-    title: 'Tree Traversals',
-    description: 'DFS (In/Pre/Post-Order) and BFS (Level-Order)',
-  },
-  {
-    icon: RotateCcw,
-    title: 'AVL Rotations',
-    description: 'Left/Right rotations for balanced trees',
-  },
-  {
-    icon: SplitSquareHorizontal,
-    title: 'Collision Resolution',
-    description: 'Linear probing and chaining techniques',
+    icon: Target,
+    title: 'Interactive Practice',
+    description: 'Test your understanding with prediction challenges',
   },
 ];
 
+const complexityData = [
+  { notation: 'O(1)', name: 'Constant', color: 'emerald', example: 'Array access' },
+  { notation: 'O(log n)', name: 'Logarithmic', color: 'cyan', example: 'Binary search' },
+  { notation: 'O(n)', name: 'Linear', color: 'amber', example: 'Linear search' },
+  { notation: 'O(n log n)', name: 'Linearithmic', color: 'orange', example: 'Merge sort' },
+  { notation: 'O(n²)', name: 'Quadratic', color: 'rose', example: 'Bubble sort' },
+];
+
+const getColorClasses = (color: string) => {
+  const colors: Record<string, { bg: string; border: string; text: string; shadow: string; gradient: string }> = {
+    cyan: {
+      bg: 'bg-cyan-500/10',
+      border: 'border-cyan-500/20 hover:border-cyan-500/40',
+      text: 'text-cyan-400',
+      shadow: 'shadow-cyan-500/20',
+      gradient: 'from-cyan-500 to-blue-600',
+    },
+    violet: {
+      bg: 'bg-violet-500/10',
+      border: 'border-violet-500/20 hover:border-violet-500/40',
+      text: 'text-violet-400',
+      shadow: 'shadow-violet-500/20',
+      gradient: 'from-violet-500 to-purple-600',
+    },
+    emerald: {
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/20 hover:border-emerald-500/40',
+      text: 'text-emerald-400',
+      shadow: 'shadow-emerald-500/20',
+      gradient: 'from-emerald-500 to-teal-600',
+    },
+    amber: {
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/20 hover:border-amber-500/40',
+      text: 'text-amber-400',
+      shadow: 'shadow-amber-500/20',
+      gradient: 'from-amber-500 to-orange-600',
+    },
+    rose: {
+      bg: 'bg-rose-500/10',
+      border: 'border-rose-500/20 hover:border-rose-500/40',
+      text: 'text-rose-400',
+      shadow: 'shadow-rose-500/20',
+      gradient: 'from-rose-500 to-pink-600',
+    },
+    orange: {
+      bg: 'bg-orange-500/10',
+      border: 'border-orange-500/20',
+      text: 'text-orange-400',
+      shadow: 'shadow-orange-500/20',
+      gradient: 'from-orange-500 to-red-600',
+    },
+  };
+  return colors[color] || colors.cyan;
+};
+
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0a0a1a] overflow-hidden relative">
-      {/* Animated stars background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
+    <div className="min-h-screen bg-[#030712] text-white">
+      {/* Subtle grid background */}
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
       
-      {/* Gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      <div className="absolute top-1/2 right-1/3 w-64 sm:w-80 h-64 sm:h-80 bg-emerald-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      {/* Gradient accents */}
+      <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[128px] pointer-events-none" />
+      <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[128px] pointer-events-none" />
+
+      {/* Navigation */}
+      <nav className="relative z-10 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center">
+                <Layers className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-semibold tracking-tight">DSA Visualizer</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <Link href="/sandbox" className="text-sm text-slate-400 hover:text-white transition-colors">
+                Sandbox
+              </Link>
+              <Link 
+                href="https://github.com" 
+                target="_blank"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <Github className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
 
       {/* Hero Section */}
-      <div className="relative flex flex-col items-center px-4 sm:px-6 py-12 sm:py-16">
-        <div className="text-center space-y-6 sm:space-y-8 max-w-6xl">
-          {/* Logo/Icon */}
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
-              <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-6 rounded-full border border-white/10">
-                <Network className="w-10 h-10 sm:w-16 sm:h-16 text-cyan-400" />
+      <section className="relative z-10 pt-20 pb-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-3xl">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-8">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-sm text-cyan-400">Interactive Learning Platform</span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+              Master{" "}
+              <span className="bg-gradient-to-r from-cyan-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+                Data Structures
+              </span>
+              <br />
+              & Algorithms
+            </h1>
+
+            {/* Description */}
+            <p className="text-lg sm:text-xl text-slate-400 leading-relaxed mb-10 max-w-2xl">
+              Visualize, understand, and master DSA through interactive animations, 
+              real-time code execution, and AI-powered explanations.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/sandbox"
+                className="group inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-900 rounded-xl font-semibold hover:bg-slate-100 transition-all"
+              >
+                <Code2 className="w-5 h-5" />
+                Open Sandbox
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+              <Link
+                href="/visualizer"
+                className="group inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl font-semibold hover:bg-white/10 hover:border-white/20 transition-all"
+              >
+                <Cpu className="w-5 h-5" />
+                Start Visualizing
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap gap-8 mt-12 pt-8 border-t border-white/5">
+              <div>
+                <div className="text-3xl font-bold text-white">20+</div>
+                <div className="text-sm text-slate-500">Algorithms</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">5</div>
+                <div className="text-sm text-slate-500">Data Structures</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">3</div>
+                <div className="text-sm text-slate-500">Languages</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">∞</div>
+                <div className="text-sm text-slate-500">Practice</div>
               </div>
             </div>
           </div>
-
-          {/* Title */}
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-white tracking-tight leading-tight">
-            Interactive{" "}
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              DSA
-            </span>{" "}
-            Visualizer
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-base sm:text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed px-2">
-            Master Data Structures & Algorithms through stunning, interactive visualizations. 
-            Explore arrays, linked lists, trees, graphs, and hashing with step-by-step animations.
-          </p>
         </div>
-      </div>
+      </section>
 
       {/* Algorithm Categories */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16">
-        <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
-            Choose Your Algorithm
-          </h2>
-          <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-            Select a category to start visualizing algorithms with interactive animations
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {algorithmCategories.map((category) => (
-            <Link
-              key={category.id}
-              href={category.href}
-              className={`group relative bg-white/5 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/10 ${category.borderHover} transition-all duration-300 hover:bg-white/10 hover:scale-[1.02] hover:-translate-y-1`}
-            >
-              {/* Icon */}
-              <div className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${category.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg ${category.shadowColor}`}>
-                <category.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              </div>
-              
-              {/* Title & Description */}
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 group-hover:text-cyan-400 transition-colors">
-                {category.title}
-              </h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                {category.description}
+      <section className="relative z-10 py-24 px-6 bg-gradient-to-b from-transparent via-slate-900/50 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-3">Explore Algorithms</h2>
+              <p className="text-slate-400 max-w-xl">
+                Choose a category to start visualizing algorithms with interactive step-by-step animations
               </p>
-              
-              {/* Algorithm Tags */}
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
-                {category.algorithms.slice(0, 3).map((algo) => (
-                  <span
-                    key={algo}
-                    className="bg-white/5 text-slate-300 px-2 py-1 rounded-md text-xs border border-white/5"
-                  >
-                    {algo}
-                  </span>
-                ))}
-                {category.algorithms.length > 3 && (
-                  <span className="bg-white/5 text-slate-400 px-2 py-1 rounded-md text-xs border border-white/5">
-                    +{category.algorithms.length - 3} more
-                  </span>
-                )}
+            </div>
+            <Link 
+              href="/sandbox"
+              className="hidden sm:flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              View all in Sandbox
+              <ExternalLink className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {algorithmCategories.map((category) => {
+              const colors = getColorClasses(category.color);
+              return (
+                <Link
+                  key={category.id}
+                  href={category.href}
+                  className={`group relative p-6 rounded-2xl bg-slate-900/50 border ${colors.border} transition-all duration-300 hover:bg-slate-900/80 hover:-translate-y-1`}
+                >
+                  {/* Icon */}
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg ${colors.shadow}`}>
+                    <category.icon className="w-6 h-6 text-white" />
+                  </div>
+                  
+                  {/* Content */}
+                  <h3 className="text-lg font-semibold mb-1 group-hover:text-white transition-colors">
+                    {category.title}
+                  </h3>
+                  <p className="text-sm text-slate-500 mb-4">
+                    {category.description}
+                  </p>
+                  
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {category.algorithms.map((algo) => (
+                      <span
+                        key={algo}
+                        className={`text-xs px-2 py-0.5 rounded-md ${colors.bg} ${colors.text}`}
+                      >
+                        {algo}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                    <span className="text-xs text-slate-500">{category.stats}</span>
+                    <ChevronRight className={`w-4 h-4 ${colors.text} opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all`} />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Sandbox Feature */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <Link
+            href="/sandbox"
+            className="group block relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 hover:border-cyan-500/30 transition-all duration-500"
+          >
+            {/* Background pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-cyan-500/5 to-transparent" />
+            
+            <div className="relative p-8 sm:p-12 lg:p-16">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
+                    <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">New Feature</span>
+                  </div>
+                  
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 group-hover:text-cyan-50 transition-colors">
+                    Algorithm Sandbox
+                  </h2>
+                  
+                  <p className="text-lg text-slate-400 mb-8 max-w-xl leading-relaxed">
+                    Write, execute, and learn algorithms in real-time. Features Monaco Editor, 
+                    AI-powered tutoring, and instant code execution in Java, C#, and Python.
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-3 mb-8">
+                    {['Monaco Editor', 'AI Tutor', 'Java', 'C#', 'Python', 'Live Execution'].map((tag) => (
+                      <span key={tag} className="px-3 py-1.5 text-sm bg-white/5 rounded-lg text-slate-300 border border-white/5">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  <div className="inline-flex items-center gap-3 text-cyan-400 font-semibold group-hover:gap-4 transition-all">
+                    <span>Launch Sandbox</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+                
+                {/* Code preview mockup */}
+                <div className="lg:w-[400px] shrink-0">
+                  <div className="rounded-xl bg-slate-950 border border-white/10 overflow-hidden shadow-2xl shadow-black/50">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-slate-900/50 border-b border-white/5">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                        <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                      </div>
+                      <span className="text-xs text-slate-500 ml-2">bubble_sort.py</span>
+                    </div>
+                    <div className="p-4 font-mono text-sm">
+                      <div className="text-slate-500">
+                        <span className="text-violet-400">def</span>{" "}
+                        <span className="text-cyan-400">bubble_sort</span>
+                        <span className="text-slate-300">(arr):</span>
+                      </div>
+                      <div className="text-slate-500 pl-4">
+                        <span className="text-violet-400">for</span>{" "}
+                        <span className="text-slate-300">i</span>{" "}
+                        <span className="text-violet-400">in</span>{" "}
+                        <span className="text-cyan-400">range</span>
+                        <span className="text-slate-300">(len(arr)):</span>
+                      </div>
+                      <div className="text-slate-500 pl-8">
+                        <span className="text-violet-400">for</span>{" "}
+                        <span className="text-slate-300">j</span>{" "}
+                        <span className="text-violet-400">in</span>{" "}
+                        <span className="text-cyan-400">range</span>
+                        <span className="text-slate-300">(...):</span>
+                      </div>
+                      <div className="text-slate-600 pl-12 mt-1">
+                        # Compare and swap
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* Quiz Section */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8">
+            <Link
+              href="/quiz"
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-900/30 to-slate-900 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-500 p-8 sm:p-12"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl" />
               
-              {/* CTA */}
-              <div className="flex items-center text-cyan-400 text-sm font-medium group-hover:gap-3 gap-2 transition-all">
-                <span>Explore</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <div className="relative">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6">
+                  <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">Test Yourself</span>
+                </div>
+                
+                <h2 className="text-3xl sm:text-4xl font-bold mb-4 group-hover:text-purple-50 transition-colors flex items-center gap-3">
+                  <span className="text-4xl">📝</span> DSA Quiz
+                </h2>
+                
+                <p className="text-lg text-slate-400 mb-8 leading-relaxed">
+                  Challenge yourself with AI-generated quizzes on data structures and algorithms. 
+                  Choose your topic, difficulty, and track your progress.
+                </p>
+                
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {['Multiple Choice', '8 Topics', '3 Difficulty Levels', 'Instant Feedback', 'Explanations'].map((tag) => (
+                    <span key={tag} className="px-3 py-1.5 text-sm bg-purple-500/10 rounded-lg text-purple-300 border border-purple-500/20">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                
+                <div className="inline-flex items-center gap-3 text-purple-400 font-semibold group-hover:gap-4 transition-all">
+                  <span>Start Quiz</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </div>
               </div>
             </Link>
-          ))}
+
+            {/* Quick Stats */}
+            <div className="flex flex-col gap-6">
+              <div className="flex-1 p-6 rounded-2xl bg-slate-900/50 border border-white/5">
+                <h3 className="text-lg font-semibold mb-4 text-cyan-400">Quiz Topics</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {['🔢 Arrays', '🔄 Sorting', '🔍 Searching', '🌳 Trees', '🕸️ Graphs', '🔐 Hashing', '🔗 Linked Lists', '🎯 All Topics'].map((topic) => (
+                    <div key={topic} className="px-3 py-2 bg-slate-800/50 rounded-lg text-sm text-slate-300">
+                      {topic}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex-1 p-6 rounded-2xl bg-slate-900/50 border border-white/5">
+                <h3 className="text-lg font-semibold mb-4 text-emerald-400">Learning Path</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-sm font-bold">1</span>
+                    <span className="text-slate-300">Visualize algorithms</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-400 text-sm font-bold">2</span>
+                    <span className="text-slate-300">Practice in Sandbox</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-sm font-bold">3</span>
+                    <span className="text-slate-300">Test with Quiz</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16">
-        <div className="text-center mb-8 sm:mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-            What You&apos;ll Learn
-          </h2>
-          <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-            Comprehensive coverage of essential algorithms and data structures
-          </p>
-        </div>
+      <section className="relative z-10 py-24 px-6 bg-gradient-to-b from-transparent via-slate-900/30 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Why Learn Here?</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto">
+              A comprehensive platform designed to make algorithm learning intuitive and engaging
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="group bg-white/5 backdrop-blur-xl rounded-xl p-4 sm:p-5 border border-white/10 hover:border-purple-500/30 transition-all duration-300 hover:bg-white/10 text-center"
-            >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform border border-white/10">
-                <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, idx) => (
+              <div
+                key={feature.title}
+                className="group p-6 rounded-2xl bg-slate-900/30 border border-white/5 hover:border-white/10 hover:bg-slate-900/50 transition-all"
+              >
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${idx === 0 ? 'from-cyan-500 to-blue-600' : idx === 1 ? 'from-violet-500 to-purple-600' : idx === 2 ? 'from-emerald-500 to-teal-600' : 'from-amber-500 to-orange-600'} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <feature.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{feature.description}</p>
               </div>
-              <h3 className="text-white text-xs sm:text-sm font-semibold mb-1">
-                {feature.title}
-              </h3>
-              <p className="text-slate-500 text-xs leading-relaxed hidden sm:block">
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Complexity Reference */}
-      <section className="relative max-w-4xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16">
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 sm:p-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 text-center">
-            Time Complexity Reference
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-emerald-400 mb-1">O(1)</div>
-              <div className="text-slate-400 text-xs sm:text-sm">Constant</div>
-              <div className="text-slate-500 text-xs mt-1">Hash lookup</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-cyan-400 mb-1">O(log n)</div>
-              <div className="text-slate-400 text-xs sm:text-sm">Logarithmic</div>
-              <div className="text-slate-500 text-xs mt-1">Binary Search</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-yellow-400 mb-1">O(n)</div>
-              <div className="text-slate-400 text-xs sm:text-sm">Linear</div>
-              <div className="text-slate-500 text-xs mt-1">Linear Search</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-orange-400 mb-1">O(n log n)</div>
-              <div className="text-slate-400 text-xs sm:text-sm">Linearithmic</div>
-              <div className="text-slate-500 text-xs mt-1">Merge Sort</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Tech Stack */}
-      <section className="relative max-w-4xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
-        <div className="pt-6 sm:pt-8 border-t border-white/10">
-          <div className="flex items-center justify-center gap-2 text-slate-500 text-xs sm:text-sm mb-4 sm:mb-6">
-            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span>Powered by</span>
-          </div>
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 text-slate-400 px-4">
-            {["Next.js 15", "React 19", "TypeScript", "p5.js", "TailwindCSS"].map((tech) => (
-              <span key={tech} className="bg-white/5 backdrop-blur px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border border-white/5 hover:border-white/20 transition-colors">
-                {tech}
-              </span>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Complexity Reference */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Time Complexity</h2>
+            <p className="text-slate-400">Quick reference for Big O notation</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {complexityData.map((item) => {
+              const colors = getColorClasses(item.color);
+              return (
+                <div
+                  key={item.notation}
+                  className={`p-5 rounded-xl bg-slate-900/50 border ${colors.border.split(' ')[0]} text-center transition-all hover:scale-105`}
+                >
+                  <div className={`text-2xl sm:text-3xl font-mono font-bold ${colors.text} mb-1`}>
+                    {item.notation}
+                  </div>
+                  <div className="text-sm text-slate-400 mb-2">{item.name}</div>
+                  <div className="text-xs text-slate-600">{item.example}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+            Ready to master algorithms?
+          </h2>
+          <p className="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
+            Start visualizing and coding today. No signup required.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="/sandbox"
+              className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg shadow-cyan-500/25"
+            >
+              Start Learning
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+            <Link
+              href="/visualizer"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white/5 border border-white/10 rounded-xl font-semibold hover:bg-white/10 transition-all"
+            >
+              Explore Visualizers
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="relative bg-slate-900/50 backdrop-blur-xl border-t border-white/10">
-        <div className="max-w-[1800px] mx-auto px-6 py-4 text-center">
-          <p className="text-slate-500 text-sm">
-            Interactive DSA Visualizer — An educational tool for understanding algorithms and data structures
-          </p>
-          <p className="text-slate-600 text-xs mt-1">
-            Made by Gio Joshua Gonzales from 2ACSAD of UMak
-          </p>
+      <footer className="relative z-10 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center">
+                <Layers className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-sm text-slate-500">Interactive DSA Visualizer</span>
+            </div>
+            <div className="text-sm text-slate-600">
+              Made by Gio Joshua Gonzales • 2ACSAD UMak
+            </div>
+          </div>
         </div>
       </footer>
     </div>
