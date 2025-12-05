@@ -5,10 +5,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Home, Github, Play, Pause, SkipForward, SkipBack, 
-  RefreshCw, GitBranch, ChevronDown
+  RefreshCw, GitBranch, ChevronDown, HelpCircle, BookOpen, Sun, Moon
 } from 'lucide-react';
 import TreeVisualizer from './TreeVisualizer';
 import AIExplanationPanel from '@/components/AIExplanationPanel';
+import OnboardingTour, { useTour } from '@/components/OnboardingTour';
+import AlgorithmEducationPanel from '@/components/AlgorithmEducationPanel';
+import { TREE_VISUALIZER_TOUR, getAlgorithmInfo } from '@/lib/educationalContent';
+import { useTheme } from '@/context/ThemeContext';
 import { TreeAlgorithm, TreeStep, TREE_INFO, TreeNode } from './types';
 import { 
   generateBST,
@@ -29,6 +33,21 @@ const ALGORITHM_OPTIONS: { value: TreeAlgorithm; label: string }[] = [
 ];
 
 export default function TreesPage() {
+  const { isDark, toggleTheme } = useTheme();
+  
+  // Tour and education state
+  const { startTour } = useTour('tree-visualizer');
+  const [showEducation, setShowEducation] = useState(false);
+  
+  // Algorithm to educational key mapping
+  const algorithmKeyMap: Record<TreeAlgorithm, string> = {
+    'inorder': 'inorder-traversal',
+    'preorder': 'preorder-traversal',
+    'postorder': 'postorder-traversal',
+    'levelorder': 'levelorder-traversal',
+    'avl-rotation': 'avl-rotation',
+  };
+  
   const [algorithm, setAlgorithm] = useState<TreeAlgorithm>('inorder');
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [steps, setSteps] = useState<TreeStep[]>([]);
@@ -188,26 +207,40 @@ export default function TreesPage() {
   const info = TREE_INFO[algorithm];
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] overflow-hidden relative">
-      {/* Animated stars background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
+    <div className={`min-h-screen overflow-hidden relative transition-colors duration-300 ${
+      isDark ? 'bg-[#0a0a1a]' : 'bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50'
+    }`}>
+      {/* Animated stars background - Dark mode only */}
+      {isDark && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="stars"></div>
+          <div className="stars2"></div>
+          <div className="stars3"></div>
+        </div>
+      )}
       
       {/* Gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-3xl"></div>
+      <div className={`absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-3xl ${
+        isDark ? 'bg-orange-500/10' : 'bg-orange-300/20'
+      }`}></div>
+      <div className={`absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full blur-3xl ${
+        isDark ? 'bg-amber-500/10' : 'bg-amber-300/20'
+      }`}></div>
 
       {/* Header */}
-      <header className="relative bg-slate-900/50 backdrop-blur-xl border-b border-white/10">
+      <header className={`relative backdrop-blur-xl border-b ${
+        isDark ? 'bg-slate-900/50 border-white/10' : 'bg-white/70 border-slate-200'
+      }`}>
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 sm:gap-4">
               <Link href="/" className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 rounded-xl opacity-60 blur-sm group-hover:opacity-80 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-1 sm:p-1.5 rounded-lg border border-white/20 overflow-hidden">
+                <div className={`relative p-1 sm:p-1.5 rounded-lg border overflow-hidden ${
+                  isDark 
+                    ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-white/20' 
+                    : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'
+                }`}>
                   <Image 
                     src="/Logo.png" 
                     alt="DSA Visualizer Logo" 
@@ -218,18 +251,66 @@ export default function TreesPage() {
                 </div>
               </Link>
               <div>
-                <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-white via-orange-200 to-white bg-clip-text text-transparent">
+                <h1 className={`text-base sm:text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
+                  isDark ? 'from-white via-orange-200 to-white' : 'from-slate-800 via-orange-600 to-slate-800'
+                }`}>
                   Tree Algorithms
                 </h1>
-                <p className="text-slate-400 text-xs sm:text-sm hidden sm:block">
+                <p className={`text-xs sm:text-sm hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {info.name}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              {/* Learn Algorithm Button */}
+              <button
+                onClick={() => setShowEducation(true)}
+                className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white' 
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white'
+                }`}
+                aria-label="Learn about algorithm"
+                data-tour="learn-button"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="text-xs sm:text-sm hidden sm:inline">Learn</span>
+              </button>
+              
+              {/* Help/Tour Button */}
+              <button
+                onClick={startTour}
+                className={`p-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-orange-400 hover:text-orange-300' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-orange-600'
+                }`}
+                aria-label="Start tour"
+                title="Take a tour of the visualizer"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                }`}
+                aria-label="Toggle theme"
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+              
               <Link 
                 href="/"
-                className="flex items-center gap-1.5 sm:gap-2 text-slate-400 hover:text-white transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/5"
+                className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                  isDark 
+                    ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <Home className="w-4 h-4" />
                 <span className="text-xs sm:text-sm hidden sm:inline">Home</span>
@@ -238,7 +319,11 @@ export default function TreesPage() {
                 href="https://github.com/GiYo-Mi02"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 sm:gap-2 text-slate-400 hover:text-white transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/5"
+                className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                  isDark 
+                    ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <Github className="w-4 h-4" />
                 <span className="text-xs sm:text-sm hidden sm:inline">GitHub</span>
@@ -251,10 +336,14 @@ export default function TreesPage() {
       {/* Main Content */}
       <main className="relative max-w-[1920px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Control Panel */}
-        <div className="relative z-10 bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 mb-6">
+        <div data-tour="control-panel" className={`relative z-10 backdrop-blur-xl rounded-2xl border p-4 sm:p-6 mb-6 ${
+          isDark 
+            ? 'bg-slate-900/60 border-white/10' 
+            : 'bg-white/70 border-slate-200 shadow-lg'
+        }`}>
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             {/* Algorithm Selector */}
-            <div className="relative">
+            <div className="relative" data-tour="algorithm-selector">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl border border-white/10 transition-colors min-w-[220px]"
@@ -441,7 +530,11 @@ export default function TreesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* Visualization Area */}
           <div className="lg:col-span-8 xl:col-span-9">
-            <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 min-h-[500px] sm:min-h-[600px]">
+            <div data-tour="visualization-area" className={`backdrop-blur-xl rounded-2xl border p-3 sm:p-4 min-h-[500px] sm:min-h-[600px] ${
+              isDark 
+                ? 'bg-slate-900/60 border-white/10' 
+                : 'bg-white/70 border-slate-200 shadow-lg'
+            }`}>
               <TreeVisualizer
                 step={currentStep}
                 nodes={nodes}
@@ -450,7 +543,7 @@ export default function TreesPage() {
           </div>
 
           {/* Info Panel */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+          <div className="lg:col-span-4 xl:col-span-3 space-y-4" data-tour="info-panel">
             {/* AI Explanation Panel */}
             <AIExplanationPanel
               algorithm={info.name}
@@ -543,16 +636,33 @@ export default function TreesPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative bg-slate-900/50 backdrop-blur-xl border-t border-white/10 mt-8">
+      <footer className={`relative backdrop-blur-xl border-t mt-8 ${
+        isDark 
+          ? 'bg-slate-900/50 border-white/10' 
+          : 'bg-white/70 border-slate-200'
+      }`}>
         <div className="max-w-[1800px] mx-auto px-6 py-4 text-center">
-          <p className="text-slate-500 text-sm">
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
             Interactive DSA Visualizer — Tree Algorithms
           </p>
-          <p className="text-slate-600 text-xs mt-1">
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-600' : 'text-slate-500'}`}>
             Made by Gio Joshua Gonzales from 2ACSAD of UMak
           </p>
         </div>
       </footer>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        tourKey="tree-visualizer"
+        steps={TREE_VISUALIZER_TOUR}
+      />
+
+      {/* Algorithm Education Panel */}
+      <AlgorithmEducationPanel
+        algorithm={getAlgorithmInfo(algorithmKeyMap[algorithm]) || getAlgorithmInfo('inorder')!}
+        isOpen={showEducation}
+        onClose={() => setShowEducation(false)}
+      />
     </div>
   );
 }

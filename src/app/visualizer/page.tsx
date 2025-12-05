@@ -9,12 +9,15 @@ import InfoPanel from './InfoPanel';
 import AlgorithmTable from './AlgorithmTable';
 import Legend from './Legend';
 import AIExplanationPanel from '@/components/AIExplanationPanel';
+import OnboardingTour, { useTour } from '@/components/OnboardingTour';
+import AlgorithmEducationPanel from '@/components/AlgorithmEducationPanel';
+import { GRAPH_VISUALIZER_TOUR, getAlgorithmInfo } from '@/lib/educationalContent';
 import { Graph, PathStep } from './types';
 import { generateGraph } from '@/lib/graphGenerator';
 import { dijkstra, getShortestPath } from '@/lib/dijkstra';
 import { getStepDelay } from '@/lib/animationEngine';
 import { useTheme } from '@/context/ThemeContext';
-import { Home, Github, Sun, Moon, Bot, Activity, Palette, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, Github, Sun, Moon, Bot, Activity, Palette, HelpCircle, BookOpen } from 'lucide-react';
 
 // Dynamically import GraphCanvas to avoid SSR issues with p5.js
 const GraphCanvas = dynamic(() => import('./GraphCanvas'), {
@@ -31,6 +34,11 @@ const GraphCanvas = dynamic(() => import('./GraphCanvas'), {
 
 export default function VisualizerPage() {
   const { isDark, toggleTheme } = useTheme();
+  
+  // Tour and education state
+  const { startTour, isTourActive } = useTour('graph-visualizer');
+  const [showEducation, setShowEducation] = useState(false);
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string>('dijkstra');
   
   // Graph state
   const [graph, setGraph] = useState<Graph | null>(null);
@@ -266,6 +274,35 @@ export default function VisualizerPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              {/* Learn Algorithm Button */}
+              <button
+                onClick={() => setShowEducation(true)}
+                className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white' 
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white'
+                }`}
+                aria-label="Learn about algorithm"
+                data-tour="learn-button"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="text-xs sm:text-sm hidden sm:inline">Learn</span>
+              </button>
+              
+              {/* Help/Tour Button */}
+              <button
+                onClick={startTour}
+                className={`p-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-cyan-600'
+                }`}
+                aria-label="Start tour"
+                title="Take a tour of the visualizer"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
@@ -310,7 +347,7 @@ export default function VisualizerPage() {
       {/* Main Content - Responsive layout */}
       <main className="relative max-w-[1920px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Control Panel - Top bar on all screens */}
-        <div className="mb-6">
+        <div className="mb-6" data-tour="control-panel">
           <ControlPanel
             onGenerateGraph={handleGenerateGraph}
             onSelectStart={handleSelectStart}
@@ -334,7 +371,7 @@ export default function VisualizerPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* Graph Canvas & Algorithm Table - Main area */}
           <div className="lg:col-span-8 xl:col-span-9 order-1 space-y-4 lg:space-y-6">
-            <div className={`backdrop-blur-xl rounded-2xl border p-3 sm:p-4 h-[400px] sm:h-[500px] lg:h-[600px] xl:h-[680px] ${
+            <div data-tour="graph-canvas" className={`backdrop-blur-xl rounded-2xl border p-3 sm:p-4 h-[400px] sm:h-[500px] lg:h-[600px] xl:h-[680px] ${
               isDark 
                 ? 'bg-slate-900/60 border-white/10' 
                 : 'bg-white/70 border-slate-200 shadow-lg'
@@ -352,17 +389,19 @@ export default function VisualizerPage() {
             </div>
             
             {/* Algorithm Table - Under graph canvas */}
-            <AlgorithmTable
-              graph={graph}
-              currentStep={currentStep}
-              startNode={startNode}
-              endNode={endNode}
-              isDark={isDark}
-            />
+            <div data-tour="algorithm-table">
+              <AlgorithmTable
+                graph={graph}
+                currentStep={currentStep}
+                startNode={startNode}
+                endNode={endNode}
+                isDark={isDark}
+              />
+            </div>
           </div>
 
           {/* Right Sidebar - Improved with tabs and collapsible sections */}
-          <div className="lg:col-span-4 xl:col-span-3 order-2 space-y-3">
+          <div className="lg:col-span-4 xl:col-span-3 order-2 space-y-3" data-tour="sidebar">
             {/* Sidebar Tab Navigation */}
             <div className={`flex rounded-xl p-1 ${
               isDark ? 'bg-slate-800/50' : 'bg-slate-100'
@@ -533,16 +572,18 @@ export default function VisualizerPage() {
         </div>
       </footer>
 
-      {/* Add fadeIn animation */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(5px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
-        }
-      `}</style>
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        tourKey="graph-visualizer"
+        steps={GRAPH_VISUALIZER_TOUR}
+      />
+
+      {/* Algorithm Education Panel */}
+      <AlgorithmEducationPanel
+        algorithm={getAlgorithmInfo(selectedAlgorithm) || getAlgorithmInfo('dijkstra')!}
+        isOpen={showEducation}
+        onClose={() => setShowEducation(false)}
+      />
     </div>
   );
 }

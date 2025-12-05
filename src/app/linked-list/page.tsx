@@ -5,10 +5,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Home, Github, Play, Pause, SkipForward, SkipBack, 
-  RefreshCw, Link2, ChevronDown, RotateCcw, GitMerge
+  RefreshCw, Link2, ChevronDown, RotateCcw, GitMerge,
+  HelpCircle, BookOpen, Sun, Moon
 } from 'lucide-react';
 import LinkedListVisualizer from './LinkedListVisualizer';
 import AIExplanationPanel from '@/components/AIExplanationPanel';
+import OnboardingTour, { useTour } from '@/components/OnboardingTour';
+import AlgorithmEducationPanel from '@/components/AlgorithmEducationPanel';
+import { LINKEDLIST_VISUALIZER_TOUR, getAlgorithmInfo } from '@/lib/educationalContent';
+import { useTheme } from '@/context/ThemeContext';
 import { LinkedListAlgorithm, LinkedListStep, LINKED_LIST_INFO, ListNode } from './types';
 import { 
   generateLinkedList, 
@@ -29,6 +34,20 @@ const ALGORITHM_OPTIONS: { value: LinkedListAlgorithm; label: string; icon: Reac
 ];
 
 export default function LinkedListPage() {
+  const { isDark, toggleTheme } = useTheme();
+  
+  // Tour and education state
+  const { startTour } = useTour('linked-list-visualizer');
+  const [showEducation, setShowEducation] = useState(false);
+  
+  // Algorithm to educational key mapping
+  const algorithmKeyMap: Record<LinkedListAlgorithm, string> = {
+    'traversal': 'linked-list-traversal',
+    'floyd-cycle': 'floyd-cycle-detection',
+    'reversal': 'linked-list-reversal',
+    'merge-sorted': 'merge-sorted-lists',
+  };
+  
   const [algorithm, setAlgorithm] = useState<LinkedListAlgorithm>('traversal');
   const [nodes, setNodes] = useState<ListNode[]>([]);
   const [nodes2, setNodes2] = useState<ListNode[]>([]); // For merge
@@ -207,26 +226,40 @@ export default function LinkedListPage() {
   const info = LINKED_LIST_INFO[algorithm];
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] overflow-hidden relative">
-      {/* Animated stars background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
+    <div className={`min-h-screen overflow-hidden relative transition-colors duration-300 ${
+      isDark ? 'bg-[#0a0a1a]' : 'bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50'
+    }`}>
+      {/* Animated stars background - Dark mode only */}
+      {isDark && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="stars"></div>
+          <div className="stars2"></div>
+          <div className="stars3"></div>
+        </div>
+      )}
       
       {/* Gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-3xl"></div>
+      <div className={`absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-3xl ${
+        isDark ? 'bg-emerald-500/10' : 'bg-emerald-300/20'
+      }`}></div>
+      <div className={`absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full blur-3xl ${
+        isDark ? 'bg-teal-500/10' : 'bg-teal-300/20'
+      }`}></div>
 
       {/* Header */}
-      <header className="relative bg-slate-900/50 backdrop-blur-xl border-b border-white/10">
+      <header className={`relative backdrop-blur-xl border-b ${
+        isDark ? 'bg-slate-900/50 border-white/10' : 'bg-white/70 border-slate-200'
+      }`}>
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 sm:gap-4">
               <Link href="/" className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 rounded-xl opacity-60 blur-sm group-hover:opacity-80 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-1 sm:p-1.5 rounded-lg border border-white/20 overflow-hidden">
+                <div className={`relative p-1 sm:p-1.5 rounded-lg border overflow-hidden ${
+                  isDark 
+                    ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-white/20' 
+                    : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'
+                }`}>
                   <Image 
                     src="/Logo.png" 
                     alt="DSA Visualizer Logo" 
@@ -237,18 +270,66 @@ export default function LinkedListPage() {
                 </div>
               </Link>
               <div>
-                <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">
+                <h1 className={`text-base sm:text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
+                  isDark ? 'from-white via-emerald-200 to-white' : 'from-slate-800 via-emerald-600 to-slate-800'
+                }`}>
                   Linked List Algorithms
                 </h1>
-                <p className="text-slate-400 text-xs sm:text-sm hidden sm:block">
+                <p className={`text-xs sm:text-sm hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {info.name}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              {/* Learn Algorithm Button */}
+              <button
+                onClick={() => setShowEducation(true)}
+                className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white' 
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white'
+                }`}
+                aria-label="Learn about algorithm"
+                data-tour="learn-button"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="text-xs sm:text-sm hidden sm:inline">Learn</span>
+              </button>
+              
+              {/* Help/Tour Button */}
+              <button
+                onClick={startTour}
+                className={`p-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-emerald-600'
+                }`}
+                aria-label="Start tour"
+                title="Take a tour of the visualizer"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                }`}
+                aria-label="Toggle theme"
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+              
               <Link 
                 href="/"
-                className="flex items-center gap-1.5 sm:gap-2 text-slate-400 hover:text-white transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/5"
+                className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                  isDark 
+                    ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <Home className="w-4 h-4" />
                 <span className="text-xs sm:text-sm hidden sm:inline">Home</span>
@@ -257,7 +338,11 @@ export default function LinkedListPage() {
                 href="https://github.com/GiYo-Mi02"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 sm:gap-2 text-slate-400 hover:text-white transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/5"
+                className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                  isDark 
+                    ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <Github className="w-4 h-4" />
                 <span className="text-xs sm:text-sm hidden sm:inline">GitHub</span>
@@ -270,10 +355,14 @@ export default function LinkedListPage() {
       {/* Main Content */}
       <main className="relative max-w-[1920px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Control Panel */}
-        <div className="relative z-10 bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 mb-6">
+        <div data-tour="control-panel" className={`relative z-10 backdrop-blur-xl rounded-2xl border p-4 sm:p-6 mb-6 ${
+          isDark 
+            ? 'bg-slate-900/60 border-white/10' 
+            : 'bg-white/70 border-slate-200 shadow-lg'
+        }`}>
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             {/* Algorithm Selector */}
-            <div className="relative">
+            <div className="relative" data-tour="algorithm-selector">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl border border-white/10 transition-colors min-w-[200px]"
@@ -539,16 +628,33 @@ export default function LinkedListPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative bg-slate-900/50 backdrop-blur-xl border-t border-white/10 mt-8">
+      <footer className={`relative backdrop-blur-xl border-t mt-8 ${
+        isDark 
+          ? 'bg-slate-900/50 border-white/10' 
+          : 'bg-white/70 border-slate-200'
+      }`}>
         <div className="max-w-[1800px] mx-auto px-6 py-4 text-center">
-          <p className="text-slate-500 text-sm">
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
             Interactive DSA Visualizer — Linked List Algorithms
           </p>
-          <p className="text-slate-600 text-xs mt-1">
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-600' : 'text-slate-500'}`}>
             Made by Gio Joshua Gonzales from 2ACSAD of UMak
           </p>
         </div>
       </footer>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        tourKey="linked-list-visualizer"
+        steps={LINKEDLIST_VISUALIZER_TOUR}
+      />
+
+      {/* Algorithm Education Panel */}
+      <AlgorithmEducationPanel
+        algorithm={getAlgorithmInfo(algorithmKeyMap[algorithm]) || getAlgorithmInfo('traversal')!}
+        isOpen={showEducation}
+        onClose={() => setShowEducation(false)}
+      />
     </div>
   );
 }

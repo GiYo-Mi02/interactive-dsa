@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowLeft,
   Play,
@@ -12,6 +13,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Hash,
+  Home,
+  Github,
+  HelpCircle,
+  BookOpen,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { HashAlgorithm, HashStep, HASH_INFO } from './types';
 import {
@@ -22,8 +29,25 @@ import {
 } from './algorithms';
 import { HashingVisualizer } from './HashingVisualizer';
 import AIExplanationPanel from '@/components/AIExplanationPanel';
+import OnboardingTour, { useTour } from '@/components/OnboardingTour';
+import AlgorithmEducationPanel from '@/components/AlgorithmEducationPanel';
+import { HASHING_VISUALIZER_TOUR, getAlgorithmInfo } from '@/lib/educationalContent';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function HashingPage() {
+  const { isDark, toggleTheme } = useTheme();
+  
+  // Tour and education state
+  const { startTour } = useTour('hashing-visualizer');
+  const [showEducation, setShowEducation] = useState(false);
+  
+  // Algorithm to educational key mapping
+  const algorithmKeyMap: Record<HashAlgorithm, string> = {
+    'hash-function': 'hash-function',
+    'linear-probing': 'linear-probing',
+    'chaining': 'chaining',
+  };
+  
   const [algorithm, setAlgorithm] = useState<HashAlgorithm>('hash-function');
   const [tableSize, setTableSize] = useState(10);
   const [keyCount, setKeyCount] = useState(5);
@@ -128,41 +152,130 @@ export default function HashingPage() {
   const info = HASH_INFO[algorithm];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className={`min-h-screen transition-colors duration-300 ${
+      isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50'
+    }`}>
       {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className={`border-b backdrop-blur-sm sticky top-0 z-50 ${
+        isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-white/70'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft size={20} />
-              <span className="hidden sm:inline">Back</span>
+            <Link href="/" className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 via-cyan-500 to-teal-500 rounded-xl opacity-60 blur-sm group-hover:opacity-80 transition-opacity"></div>
+              <div className={`relative p-1 sm:p-1.5 rounded-lg border overflow-hidden ${
+                isDark 
+                  ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-white/20' 
+                  : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'
+              }`}>
+                <Image 
+                  src="/Logo.png" 
+                  alt="DSA Visualizer Logo" 
+                  width={36} 
+                  height={36}
+                  className="w-7 h-7 sm:w-9 sm:h-9 object-cover rounded-md"
+                />
+              </div>
             </Link>
             <div className="flex items-center gap-2">
               <Hash className="text-teal-400" size={24} />
-              <h1 className="text-xl font-bold text-white">Hashing Algorithms</h1>
+              <h1 className={`text-xl font-bold ${
+                isDark ? 'text-white' : 'text-slate-800'
+              }`}>Hashing Algorithms</h1>
             </div>
           </div>
 
-          {/* Algorithm Selector */}
-          <select
-            value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value as HashAlgorithm)}
-            className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="hash-function">Hash Function</option>
-            <option value="linear-probing">Linear Probing</option>
-            <option value="chaining">Chaining</option>
-          </select>
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Algorithm Selector */}
+            <select
+              value={algorithm}
+              onChange={(e) => setAlgorithm(e.target.value as HashAlgorithm)}
+              className={`border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                isDark 
+                  ? 'bg-slate-800 border-slate-700 text-white' 
+                  : 'bg-white border-slate-200 text-slate-800'
+              }`}
+              data-tour="algorithm-selector"
+            >
+              <option value="hash-function">Hash Function</option>
+              <option value="linear-probing">Linear Probing</option>
+              <option value="chaining">Chaining</option>
+            </select>
+            
+            {/* Learn Algorithm Button */}
+            <button
+              onClick={() => setShowEducation(true)}
+              className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all ${
+                isDark 
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white' 
+                  : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white'
+              }`}
+              aria-label="Learn about algorithm"
+              data-tour="learn-button"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Learn</span>
+            </button>
+            
+            {/* Help/Tour Button */}
+            <button
+              onClick={startTour}
+              className={`p-2 rounded-lg transition-all ${
+                isDark 
+                  ? 'bg-slate-800 hover:bg-slate-700 text-teal-400 hover:text-teal-300' 
+                  : 'bg-slate-200 hover:bg-slate-300 text-teal-600'
+              }`}
+              aria-label="Start tour"
+              title="Take a tour of the visualizer"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
+            
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg transition-all ${
+                isDark 
+                  ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400' 
+                  : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+              }`}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            
+            <Link 
+              href="/"
+              className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                isDark 
+                  ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Home</span>
+            </Link>
+            <a 
+              href="https://github.com/GiYo-Mi02"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                isDark 
+                  ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Github className="w-4 h-4" />
+              <span className="text-xs sm:text-sm hidden sm:inline">GitHub</span>
+            </a>
+          </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Control Panel */}
-          <div className="lg:col-span-1 space-y-4">
+          <div className="lg:col-span-1 space-y-4" data-tour="control-panel">
             {/* AI Explanation Panel */}
             <AIExplanationPanel
               algorithm={info.name}
@@ -357,8 +470,10 @@ export default function HashingPage() {
           </div>
 
           {/* Visualization Area */}
-          <div className="lg:col-span-3">
-            <div className="bg-slate-800/30 rounded-xl border border-slate-700 h-[600px] overflow-hidden">
+          <div className="lg:col-span-3" data-tour="visualization-area">
+            <div className={`rounded-xl border h-[600px] overflow-hidden ${
+              isDark ? 'bg-slate-800/30 border-slate-700' : 'bg-white/70 border-slate-200 shadow-lg'
+            }`}>
               {currentStepData && <HashingVisualizer step={currentStepData} />}
             </div>
 
@@ -373,16 +488,33 @@ export default function HashingPage() {
       </div>
 
       {/* Footer */}
-      <footer className="relative bg-slate-900/50 backdrop-blur-xl border-t border-white/10 mt-8">
+      <footer className={`relative backdrop-blur-xl border-t mt-8 ${
+        isDark 
+          ? 'bg-slate-900/50 border-white/10' 
+          : 'bg-white/70 border-slate-200'
+      }`}>
         <div className="max-w-[1800px] mx-auto px-6 py-4 text-center">
-          <p className="text-slate-500 text-sm">
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
             Interactive DSA Visualizer — Hashing Algorithms
           </p>
-          <p className="text-slate-600 text-xs mt-1">
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-600' : 'text-slate-500'}`}>
             Made by Gio Joshua Gonzales from 2ACSAD of UMak
           </p>
         </div>
       </footer>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        tourKey="hashing-visualizer"
+        steps={HASHING_VISUALIZER_TOUR}
+      />
+
+      {/* Algorithm Education Panel */}
+      <AlgorithmEducationPanel
+        algorithm={getAlgorithmInfo(algorithmKeyMap[algorithm]) || getAlgorithmInfo('hash-function')!}
+        isOpen={showEducation}
+        onClose={() => setShowEducation(false)}
+      />
     </div>
   );
 }

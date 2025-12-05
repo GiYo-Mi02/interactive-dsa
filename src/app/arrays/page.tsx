@@ -5,11 +5,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Home, Github, Play, Pause, SkipForward, SkipBack, 
-  RefreshCw, Search, ArrowUpDown, Shuffle, ChevronDown
+  RefreshCw, Search, ArrowUpDown, Shuffle, ChevronDown,
+  HelpCircle, BookOpen, Sun, Moon
 } from 'lucide-react';
 import ArrayVisualizer from './ArrayVisualizer';
 import AlgorithmInfoPanel from './AlgorithmInfoPanel';
 import AIExplanationPanel from '@/components/AIExplanationPanel';
+import OnboardingTour, { useTour } from '@/components/OnboardingTour';
+import AlgorithmEducationPanel from '@/components/AlgorithmEducationPanel';
+import { ARRAY_VISUALIZER_TOUR, getAlgorithmInfo } from '@/lib/educationalContent';
+import { useTheme } from '@/context/ThemeContext';
 import { ArrayAlgorithm, ArrayStep, ALGORITHM_INFO } from './types';
 import { 
   generateRandomArray, 
@@ -35,6 +40,23 @@ const ALGORITHM_OPTIONS: { value: ArrayAlgorithm; label: string; category: 'sear
 ];
 
 export default function ArraysPage() {
+  const { isDark, toggleTheme } = useTheme();
+  
+  // Tour and education state
+  const { startTour } = useTour('array-visualizer');
+  const [showEducation, setShowEducation] = useState(false);
+  
+  // Algorithm to educational key mapping
+  const algorithmKeyMap: Record<ArrayAlgorithm, string> = {
+    'linear-search': 'linear-search',
+    'binary-search': 'binary-search',
+    'bubble-sort': 'bubble-sort',
+    'selection-sort': 'selection-sort',
+    'quick-sort': 'quick-sort',
+    'merge-sort': 'merge-sort',
+    'two-pointer': 'two-pointer',
+  };
+  
   // State
   const [algorithm, setAlgorithm] = useState<ArrayAlgorithm>('bubble-sort');
   const [array, setArray] = useState<number[]>([]);
@@ -194,26 +216,40 @@ export default function ArraysPage() {
   const isSearchAlgorithm = algorithm === 'linear-search' || algorithm === 'binary-search' || algorithm === 'two-pointer';
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] overflow-hidden relative">
-      {/* Animated stars background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
+    <div className={`min-h-screen overflow-hidden relative transition-colors duration-300 ${
+      isDark ? 'bg-[#0a0a1a]' : 'bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50'
+    }`}>
+      {/* Animated stars background - Dark mode only */}
+      {isDark && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="stars"></div>
+          <div className="stars2"></div>
+          <div className="stars3"></div>
+        </div>
+      )}
       
       {/* Gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl"></div>
+      <div className={`absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-3xl ${
+        isDark ? 'bg-purple-500/10' : 'bg-purple-300/20'
+      }`}></div>
+      <div className={`absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full blur-3xl ${
+        isDark ? 'bg-cyan-500/10' : 'bg-cyan-300/20'
+      }`}></div>
 
       {/* Header */}
-      <header className="relative bg-slate-900/50 backdrop-blur-xl border-b border-white/10">
+      <header className={`relative backdrop-blur-xl border-b ${
+        isDark ? 'bg-slate-900/50 border-white/10' : 'bg-white/70 border-slate-200'
+      }`}>
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 sm:gap-4">
               <Link href="/" className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-xl opacity-60 blur-sm group-hover:opacity-80 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-1 sm:p-1.5 rounded-lg border border-white/20 overflow-hidden">
+                <div className={`relative p-1 sm:p-1.5 rounded-lg border overflow-hidden ${
+                  isDark 
+                    ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-white/20' 
+                    : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'
+                }`}>
                   <Image 
                     src="/Logo.png" 
                     alt="DSA Visualizer Logo" 
@@ -224,18 +260,66 @@ export default function ArraysPage() {
                 </div>
               </Link>
               <div>
-                <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+                <h1 className={`text-base sm:text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
+                  isDark ? 'from-white via-purple-200 to-white' : 'from-slate-800 via-purple-600 to-slate-800'
+                }`}>
                   Array Algorithms
                 </h1>
-                <p className="text-slate-400 text-xs sm:text-sm hidden sm:block">
+                <p className={`text-xs sm:text-sm hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {ALGORITHM_INFO[algorithm].name}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              {/* Learn Algorithm Button */}
+              <button
+                onClick={() => setShowEducation(true)}
+                className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white' 
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white'
+                }`}
+                aria-label="Learn about algorithm"
+                data-tour="learn-button"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="text-xs sm:text-sm hidden sm:inline">Learn</span>
+              </button>
+              
+              {/* Help/Tour Button */}
+              <button
+                onClick={startTour}
+                className={`p-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-purple-400 hover:text-purple-300' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-purple-600'
+                }`}
+                aria-label="Start tour"
+                title="Take a tour of the visualizer"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                }`}
+                aria-label="Toggle theme"
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+              
               <Link 
                 href="/"
-                className="flex items-center gap-1.5 sm:gap-2 text-slate-400 hover:text-white transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/5"
+                className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                  isDark 
+                    ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <Home className="w-4 h-4" />
                 <span className="text-xs sm:text-sm hidden sm:inline">Home</span>
@@ -244,7 +328,11 @@ export default function ArraysPage() {
                 href="https://github.com/GiYo-Mi02"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 sm:gap-2 text-slate-400 hover:text-white transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/5"
+                className={`flex items-center gap-1.5 sm:gap-2 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${
+                  isDark 
+                    ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <Github className="w-4 h-4" />
                 <span className="text-xs sm:text-sm hidden sm:inline">GitHub</span>
@@ -257,13 +345,21 @@ export default function ArraysPage() {
       {/* Main Content */}
       <main className="relative max-w-[1920px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Control Panel */}
-        <div className="relative z-10 bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 mb-6">
+        <div data-tour="control-panel" className={`relative z-10 backdrop-blur-xl rounded-2xl border p-4 sm:p-6 mb-6 ${
+          isDark 
+            ? 'bg-slate-900/60 border-white/10' 
+            : 'bg-white/70 border-slate-200 shadow-lg'
+        }`}>
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             {/* Algorithm Selector */}
-            <div className="relative">
+            <div className="relative" data-tour="algorithm-selector">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl border border-white/10 transition-colors min-w-[180px]"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-colors min-w-[180px] ${
+                  isDark 
+                    ? 'bg-slate-800 hover:bg-slate-700 text-white border-white/10' 
+                    : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
+                }`}
               >
                 <span className="text-sm">{ALGORITHM_INFO[algorithm].name}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
@@ -461,7 +557,11 @@ export default function ArraysPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* Visualization Area */}
           <div className="lg:col-span-8 xl:col-span-9">
-            <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 h-[400px] sm:h-[500px]">
+            <div data-tour="visualization-area" className={`backdrop-blur-xl rounded-2xl border p-3 sm:p-4 h-[400px] sm:h-[500px] ${
+              isDark 
+                ? 'bg-slate-900/60 border-white/10' 
+                : 'bg-white/70 border-slate-200 shadow-lg'
+            }`}>
               <ArrayVisualizer
                 step={currentStep}
                 array={array}
@@ -470,7 +570,7 @@ export default function ArraysPage() {
           </div>
 
           {/* Info Panel */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+          <div className="lg:col-span-4 xl:col-span-3 space-y-4" data-tour="info-panel">
             {/* AI Explanation Panel */}
             <AIExplanationPanel
               algorithm={ALGORITHM_INFO[algorithm]?.name || algorithm}
@@ -503,16 +603,33 @@ export default function ArraysPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative bg-slate-900/50 backdrop-blur-xl border-t border-white/10 mt-8">
+      <footer className={`relative backdrop-blur-xl border-t mt-8 ${
+        isDark 
+          ? 'bg-slate-900/50 border-white/10' 
+          : 'bg-white/70 border-slate-200'
+      }`}>
         <div className="max-w-[1800px] mx-auto px-6 py-4 text-center">
-          <p className="text-slate-500 text-sm">
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
             Interactive DSA Visualizer — Array Algorithms
           </p>
-          <p className="text-slate-600 text-xs mt-1">
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-600' : 'text-slate-500'}`}>
             Made by Gio Joshua Gonzales from 2ACSAD of UMak
           </p>
         </div>
       </footer>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        tourKey="array-visualizer"
+        steps={ARRAY_VISUALIZER_TOUR}
+      />
+
+      {/* Algorithm Education Panel */}
+      <AlgorithmEducationPanel
+        algorithm={getAlgorithmInfo(algorithmKeyMap[algorithm]) || getAlgorithmInfo('bubble-sort')!}
+        isOpen={showEducation}
+        onClose={() => setShowEducation(false)}
+      />
     </div>
   );
 }
