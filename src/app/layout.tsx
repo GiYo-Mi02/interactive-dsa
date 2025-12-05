@@ -18,6 +18,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Interactive DSA Visualizer",
   description: "An interactive algorithm visualizer for learning Dijkstra's algorithm through step-by-step animations",
+  icons: {
+    icon: "/Icon.png",
+    shortcut: "/Icon.png",
+    apple: "/Icon.png",
+  },
 };
 
 export default function RootLayout({

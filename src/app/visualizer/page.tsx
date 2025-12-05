@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import Image from 'next/image';
 import ControlPanel from './ControlPanel';
 import InfoPanel from './InfoPanel';
 import AlgorithmTable from './AlgorithmTable';
@@ -13,7 +14,7 @@ import { generateGraph } from '@/lib/graphGenerator';
 import { dijkstra, getShortestPath } from '@/lib/dijkstra';
 import { getStepDelay } from '@/lib/animationEngine';
 import { useTheme } from '@/context/ThemeContext';
-import { Network, Home, Github, Sun, Moon, Bot, Activity, Palette, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, Github, Sun, Moon, Bot, Activity, Palette, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Dynamically import GraphCanvas to avoid SSR issues with p5.js
 const GraphCanvas = dynamic(() => import('./GraphCanvas'), {
@@ -236,22 +237,19 @@ export default function VisualizerPage() {
                 {/* Outer glow ring */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 rounded-xl sm:rounded-2xl opacity-60 blur-sm group-hover:opacity-80 transition-opacity animate-pulse"></div>
                 {/* Logo container */}
-                <div className={`relative p-2 sm:p-2.5 rounded-lg sm:rounded-xl border ${
+                <div className={`relative p-1 sm:p-1.5 rounded-lg sm:rounded-xl border overflow-hidden ${
                   isDark 
                     ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-white/20' 
                     : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'
                 }`}>
-                  {/* Inner gradient bg */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-lg sm:rounded-xl"></div>
-                  {/* Icon with glow */}
-                  <div className="relative">
-                    <Network className={`w-6 h-6 sm:w-7 sm:h-7 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] ${
-                      isDark ? 'text-white' : 'text-slate-800'
-                    }`} />
-                    {/* Animated dots representing nodes */}
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full"></span>
-                  </div>
+                  {/* Logo Image */}
+                  <Image 
+                    src="/Logo.png" 
+                    alt="DSA Visualizer Logo" 
+                    width={36} 
+                    height={36}
+                    className="w-7 h-7 sm:w-9 sm:h-9 object-cover rounded-md"
+                  />
                 </div>
               </div>
               <div>

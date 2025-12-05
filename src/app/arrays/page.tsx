@@ -2,8 +2,9 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
-  Network, Home, Github, Play, Pause, SkipForward, SkipBack, 
+  Home, Github, Play, Pause, SkipForward, SkipBack, 
   RefreshCw, Search, ArrowUpDown, Shuffle, ChevronDown
 } from 'lucide-react';
 import ArrayVisualizer from './ArrayVisualizer';
@@ -212,8 +213,14 @@ export default function ArraysPage() {
             <div className="flex items-center gap-3 sm:gap-4">
               <Link href="/" className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-xl opacity-60 blur-sm group-hover:opacity-80 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-2 sm:p-2.5 rounded-lg border border-white/20">
-                  <Network className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-1 sm:p-1.5 rounded-lg border border-white/20 overflow-hidden">
+                  <Image 
+                    src="/Logo.png" 
+                    alt="DSA Visualizer Logo" 
+                    width={36} 
+                    height={36}
+                    className="w-7 h-7 sm:w-9 sm:h-9 object-cover rounded-md"
+                  />
                 </div>
               </Link>
               <div>

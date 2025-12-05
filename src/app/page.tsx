@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Network, 
   ArrowRight,
@@ -12,7 +13,6 @@ import {
   Zap,
   BookOpen,
   Cpu,
-  Layers,
   Target,
   ChevronRight,
   Github,
@@ -192,8 +192,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center">
-                <Layers className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden">
+                <Image 
+                  src="/Logo.png" 
+                  alt="DSA Visualizer Logo" 
+                  width={40} 
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className={`text-lg font-semibold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>DSA Visualizer</span>
             </div>
@@ -636,8 +642,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center">
-                <Layers className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg overflow-hidden">
+                <Image 
+                  src="/Logo.png" 
+                  alt="DSA Visualizer Logo" 
+                  width={32} 
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>Interactive DSA Visualizer</span>
             </div>
