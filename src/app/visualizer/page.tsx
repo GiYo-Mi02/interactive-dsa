@@ -68,6 +68,10 @@ export default function VisualizerPage() {
 
   // Current step for display
   const currentStep = steps.length > 0 ? steps[currentStepIndex] : null;
+  
+  // Only show shortest path when algorithm is complete (at last step)
+  const isAlgorithmComplete = steps.length > 0 && currentStepIndex >= steps.length - 1;
+  const displayShortestPath = isAlgorithmComplete ? shortestPath : [];
 
   // Generate a new graph - wider canvas
   const handleGenerateGraph = useCallback(() => {
@@ -343,7 +347,7 @@ export default function VisualizerPage() {
                 endNode={endNode}
                 blockedNodes={blockedNodes}
                 currentStep={currentStep}
-                shortestPath={shortestPath}
+                shortestPath={displayShortestPath}
                 selectionMode={selectionMode}
                 onNodeClick={handleNodeClick}
               />
@@ -432,7 +436,7 @@ export default function VisualizerPage() {
                         startNode,
                         endNode,
                         blockedNodes: Array.from(blockedNodes),
-                        shortestPath,
+                        shortestPath: displayShortestPath,
                         stepNumber: currentStepIndex + 1,
                         totalSteps: steps.length,
                       },
@@ -451,7 +455,7 @@ export default function VisualizerPage() {
                     startNode={startNode}
                     endNode={endNode}
                     blockedNodes={blockedNodes}
-                    shortestPath={shortestPath}
+                    shortestPath={displayShortestPath}
                     isDark={isDark}
                   />
                 </div>
