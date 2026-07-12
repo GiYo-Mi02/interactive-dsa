@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PISTON_API_URL = "https://emkc.org/api/v2/piston/execute";
+const PISTON_API_URL = process.env.PISTON_API_URL || "https://emkc.org/api/v2/piston/execute";
 
 // Language configurations for Piston API
 const LANGUAGE_CONFIG: Record<string, { language: string; version: string }> = {
@@ -59,10 +59,23 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Piston API error:", errorText);
+      
+      let errorMessage = "Code execution service unavailable. Please try again.";
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.message) {
+          errorMessage = errorJson.message;
+        }
+      } catch (e) {}
+
+      if ((response.status === 401 || response.status === 403) && PISTON_API_URL.includes("emkc.org")) {
+        errorMessage = "The public Piston API is now whitelist-only. To run code, please self-host Piston (e.g. using Docker: `docker run -d -p 2000:2000 engineer-man/piston`) and set PISTON_API_URL in your .env.local file.";
+      }
+
       return NextResponse.json(
         { 
           success: false, 
-          error: "Code execution service unavailable. Please try again." 
+          error: errorMessage 
         },
         { status: 500 }
       );
